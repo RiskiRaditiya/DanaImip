@@ -1,0 +1,17 @@
+# Data Sensitif & Rahasia
+*.csv
+!data-sample/*.csv
+.env
+.env.*
+config.js
+credentials.json
+service-account*.json
+
+# File Sementara & Catatan Debug
+*.txt
+!robots.txt
+scratch/
+.agents/
+node_modules/
+.DS_Store
+Thumbs.db

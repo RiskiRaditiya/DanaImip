@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <script>
+        (function() {
+            const session = sessionStorage.getItem('adminSession');
+            const token = sessionStorage.getItem('adminAuthToken');
+            if (session !== 'active' || !token) {
+                sessionStorage.removeItem('adminSession');
+                sessionStorage.removeItem('adminAuthToken');
+                window.location.replace('Login-Admin.html');
+            }
+        })();
+        document.documentElement.classList.remove('light-mode');
+        document.documentElement.classList.add('dark');
+    </script>
+    <link class="head-theme-sync" rel="icon" href="../bendahara.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kelola Anggota Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @custom-variant dark (&:where(.dark, .dark *));
+
+        :root {
+            /* ==========================================================================
+               DARK MODE (DEFAULT) SYSTEM - Modern Deep Space & Treasury Emerald / Cyber Cyan
+               ========================================================================== */
+            --bg-main: #080C14;              /* Deep Space Cosmic Black */
+            --bg-card: #0F1623;              /* Crisp card background with high contrast */
+            --border-card: #1E293B;          /* Sophisticated border */
+            --border-muted: #151F30;         /* Subtler border */
+            
+            --text-primary: #F8FAFC;         /* Slate 50 */
+            --text-sec-100: #F1F5F9;         /* Slate 100 */
+            --text-sec-200: #E2E8F0;         /* Slate 200 */
+            --text-sec-300: #CBD5E1;         /* Slate 300 */
+            --text-sec-400: #94A3B8;         /* Slate 400 */
+            --text-sec-500: #64748B;         /* Slate 500 */
+            --text-sec-600: #475569;         /* Slate 600 */
+            
+            --bg-neutral-pill: #162032;      /* Background for neutral pills */
+            
+            --bg-cyan-pill: rgba(255, 115, 0, 0.12);
+            --border-cyan-pill: rgba(255, 115, 0, 0.28);
+            --text-cyan-accent: #FB923C;     /* Orange 400 */
+            
+            --bg-green-pill: rgba(16, 185, 129, 0.12);
+            --border-green-pill: rgba(16, 185, 129, 0.28);
+            --text-green-accent: #10B981;    /* Emerald 500 */
+            
+            --bg-amber-pill: rgba(245, 158, 11, 0.12);
+            --border-amber-pill: rgba(245, 158, 11, 0.28);
+            --text-amber-accent: #FBBF24;    /* Amber 400 */
+            
+            --text-rose-accent: #FB7185;     /* Rose 400 */
+            
+            --splash-bg: #080C14;
+            --splash-text: #FFFFFF;
+            --splash-glow: rgba(16, 185, 129, 0.12);
+            
+            --footer-bg: rgba(15, 22, 35, 0.6);
+            --footer-border: #1E293B;
+            
+            --hover-cyan-border: rgba(255, 115, 0, 0.5);
+            --hover-green-border: rgba(16, 185, 129, 0.5);
+            --hover-amber-border: rgba(245, 158, 11, 0.5);
+            --hover-neutral-border: #334155;
+
+            /* Accent glow variables */
+            --glow-cyan: 0 4px 20px rgba(255, 115, 0, 0.20);
+            --glow-green: 0 4px 20px rgba(16, 185, 129, 0.20);
+            --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-main) !important; 
+            color: var(--text-primary) !important; 
+            min-height: 100vh;
+        }
+        
+        .premium-card {
+            background-color: var(--bg-card) !important;
+            border-color: var(--border-card) !important;
+            box-shadow: var(--shadow-card);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        }
+
+        /* STATIC COSMIC NEBULA BACKGROUND (GPU OPTIMIZED) */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 65% 55% at 20% 15%, rgba(255, 115, 0, 0.11) 0%, transparent 60%),
+                radial-gradient(ellipse 55% 50% at 85% 25%, rgba(234, 88, 12, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 60% at 75% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 25% 80%, rgba(255, 115, 0, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        /* AUTHENTIC OUTER SPACE STARFIELD */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg%20width%3D%22400%22%20height%3D%22400%22%20viewBox%3D%220%200%20400%20400%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22%23ffffff%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2235%22%20r%3D%220.7%22%20opacity%3D%220.5%22%2F%3E%3Ccircle%20cx%3D%2295%22%20cy%3D%2218%22%20r%3D%220.6%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%22160%22%20cy%3D%2290%22%20r%3D%220.8%22%20opacity%3D%220.4%22%2F%3E%3Ccircle%20cx%3D%22230%22%20cy%3D%2230%22%20r%3D%220.7%22%20opacity%3D%220.65%22%2F%3E%3Ccircle%20cx%3D%22310%22%20cy%3D%2265%22%20r%3D%220.6%22%20opacity%3D%220.5%22%2F%3E%3Ccircle%20cx%3D%22375%22%20cy%3D%2222%22%20r%3D%220.75%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%22130%22%20r%3D%220.65%22%20opacity%3D%220.45%22%2F%3E%3Ccircle%20cx%3D%22120%22%20cy%3D%22175%22%20r%3D%220.8%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%22190%22%20cy%3D%22140%22%20r%3D%220.6%22%20opacity%3D%220.4%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%22160%22%20r%3D%220.75%22%20opacity%3D%220.55%22%2F%3E%3Ccircle%20cx%3D%22340%22%20cy%3D%22120%22%20r%3D%220.7%22%20opacity%3D%220.65%22%2F%3E%3Ccircle%20cx%3D%2235%22%20cy%3D%22235%22%20r%3D%220.6%22%20opacity%3D%220.5%22%2F%3E%3Ccircle%20cx%3D%22105%22%20cy%3D%22260%22%20r%3D%220.75%22%20opacity%3D%220.55%22%2F%3E%3Ccircle%20cx%3D%22170%22%20cy%3D%22220%22%20r%3D%220.8%22%20opacity%3D%220.45%22%2F%3E%3Ccircle%20cx%3D%22245%22%20cy%3D%22250%22%20r%3D%220.65%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%22305%22%20cy%3D%22215%22%20r%3D%220.7%22%20opacity%3D%220.45%22%2F%3E%3Ccircle%20cx%3D%22370%22%20cy%3D%22255%22%20r%3D%220.8%22%20opacity%3D%220.55%22%2F%3E%3Ccircle%20cx%3D%2265%22%20cy%3D%22330%22%20r%3D%220.7%22%20opacity%3D%220.5%22%2F%3E%3Ccircle%20cx%3D%22140%22%20cy%3D%22350%22%20r%3D%220.6%22%20opacity%3D%220.4%22%2F%3E%3Ccircle%20cx%3D%22210%22%20cy%3D%22315%22%20r%3D%220.8%22%20opacity%3D%220.65%22%2F%3E%3Ccircle%20cx%3D%22285%22%20cy%3D%22345%22%20r%3D%220.7%22%20opacity%3D%220.5%22%2F%3E%3Ccircle%20cx%3D%22355%22%20cy%3D%22355%22%20r%3D%220.65%22%20opacity%3D%220.55%22%2F%3E%3Ccircle%20cx%3D%2275%22%20cy%3D%2278%22%20r%3D%221.2%22%20fill%3D%22%236ee7b7%22%20opacity%3D%220.8%22%2F%3E%3Ccircle%20cx%3D%22260%22%20cy%3D%22100%22%20r%3D%221.3%22%20fill%3D%22%2367e8f9%22%20opacity%3D%220.75%22%2F%3E%3Ccircle%20cx%3D%22185%22%20cy%3D%22275%22%20r%3D%221.1%22%20fill%3D%22%2334d399%22%20opacity%3D%220.7%22%2F%3E%3Ccircle%20cx%3D%22345%22%20cy%3D%22190%22%20r%3D%221.2%22%20fill%3D%22%2338bdf8%22%20opacity%3D%220.8%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%22195%22%20r%3D%221.1%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.75%22%2F%3E%3Ccircle%20cx%3D%22230%22%20cy%3D%22370%22%20r%3D%221.2%22%20fill%3D%22%236ee7b7%22%20opacity%3D%220.75%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2240%22%20r%3D%221.3%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.85%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+            background-size: 380px 380px;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.75;
+        }
+        
+        /* Subtle glow animations */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .loading-bar-glider {
+            animation: loadingGlider 1.5s ease-in-out infinite;
+        }
+        @keyframes loadingGlider {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        #loading-overlay {
+            background-color: var(--splash-bg);
+            color: var(--splash-text);
+        }
+        .spinner-ring {
+            border-color: rgba(16, 185, 129, 0.1);
+            border-top-color: var(--text-green-accent);
+        }
+
+        /* SwAlert overrides to match our design system */
+        .swal2-popup {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            border-radius: 1.25rem !important;
+            color: var(--text-primary) !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        .swal2-title {
+            color: var(--text-sec-100) !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+        }
+        .swal2-html-container {
+            color: var(--text-sec-400) !important;
+            font-size: 0.75rem !important;
+        }
+        .swal2-confirm {
+            background-color: #FF7300 !important;
+            color: #ffffff !important;
+            font-family: monospace !important;
+            font-weight: 700 !important;
+            font-size: 10px !important;
+            border-radius: 0.75rem !important;
+            padding: 0.75rem 1.5rem !important;
+        }
+        .swal2-cancel {
+            background-color: #1c2235 !important;
+            color: var(--text-sec-300) !important;
+            font-family: monospace !important;
+            font-weight: 700 !important;
+            font-size: 10px !important;
+            border-radius: 0.75rem !important;
+            padding: 0.75rem 1.5rem !important;
+        }
+
+        /* ==========================================================================
+           MODERN MOBILE BOTTOM NAVIGATION DOCK (ADMIN FINTECH STYLE 2026)
+           ========================================================================== */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: rgba(8, 12, 20, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.5), 0 -1px 3px rgba(16, 185, 129, 0.15);
+            z-index: 1000;
+            touch-action: manipulation;
+            padding: 4px 6px calc(env(safe-area-inset-bottom, 0px) + 4px) 6px;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-width: 0;
+            padding: 4px 2px;
+            color: #94a3b8;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            border: none;
+            background: transparent;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .bottom-nav-item * {
+            pointer-events: none;
+        }
+
+        .bottom-nav-item:active {
+            transform: scale(0.92);
+        }
+
+        .bottom-nav-item .nav-icon-wrap {
+            width: 34px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .bottom-nav-item .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+            margin-top: 2px;
+            transition: color 0.2s ease, font-weight 0.2s ease;
+            white-space: nowrap;
+        }
+
+        /* Dark Mode Active State - Emerald Glow */
+        .bottom-nav-item.active {
+            color: #FF7300;
+        }
+        .bottom-nav-item.active .nav-icon-wrap {
+            background: rgba(255, 115, 0, 0.16);
+            color: #FF7300;
+            box-shadow: 0 0 14px rgba(255, 115, 0, 0.4);
+            border: 1px solid rgba(255, 115, 0, 0.35);
+        }
+        .bottom-nav-item.active .nav-label {
+            color: #FF7300;
+            font-weight: 800;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                display: none !important;
+            }
+            .mobile-bottom-nav {
+                display: flex !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background: #080C14 !important;
+                border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+            }
+            body {
+                padding-bottom: 88px !important;
+                background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 115, 0, 0.12) 0%, transparent 60%), #080C14 !important;
+            }
+            main {
+                padding-top: 0 !important;
+                gap: 8px !important;
+            }
+            body::before {
+                display: none !important;
+            }
+            body::after {
+                opacity: 0.3 !important;
+                transform: translateZ(0);
+            }
+            .bg-neutral-950, .border-neutral-900, .border-neutral-800, .border-neutral-850 {
+                transition: none !important;
+            }
+            body:has(input:focus) .mobile-bottom-nav,
+            body:has(select:focus) .mobile-bottom-nav,
+            body:has(textarea:focus) .mobile-bottom-nav {
+                display: none !important;
+            }
+
+            /* Mobile Modal Floating Form Overrides for Kelola-Anggota (CENTERED IN SCREEN) */
+            #anggota-form-wrapper.mobile-modal-active {
+                display: flex !important;
+                position: fixed !important;
+                inset: 0 !important;
+                z-index: 60 !important;
+                background: rgba(6, 10, 18, 0.85) !important;
+                backdrop-filter: blur(8px) !important;
+                -webkit-backdrop-filter: blur(8px) !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 14px !important;
+                animation: fadeInModal 0.2s ease-out forwards;
+            }
+            #anggota-form-wrapper.mobile-modal-active #panel-form-anggota {
+                width: 100% !important;
+                max-width: 460px !important;
+                max-height: 82vh !important;
+                border-radius: 1.25rem !important;
+                border: 1px solid rgba(255, 115, 0, 0.3) !important;
+                overflow-y: auto !important;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 115, 0, 0.12) !important;
+                animation: zoomInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+            body.overflow-hidden-mobile {
+                overflow: hidden !important;
+            }
+            body.overflow-hidden-mobile #mobile-anggota-fab-container {
+                display: none !important;
+            }
+        }
+
+        @keyframes fadeInModal {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes zoomInModal {
+            from { opacity: 0; transform: scale(0.95) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen antialiased flex flex-col justify-between selection:bg-orange-950 selection:text-orange-400 relative">
+
+    <!-- PREMIUM LOADING OVERLAY -->
+    <div id="loading-overlay" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-all duration-300">
+        <div class="relative flex flex-col items-center justify-center">
+            <!-- Dual Ring Spinner with Center Glow Icon -->
+            <div class="relative w-16 h-16 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border border-dashed border-orange-500/30 animate-spin" style="animation-duration: 9s;"></div>
+                <div class="w-14 h-14 rounded-full border-2 border-neutral-800 border-t-[#FF7300] border-r-[#FF7300]/40 animate-spin shadow-[0_0_20px_rgba(255,115,0,0.3)]"></div>
+                <div class="absolute flex items-center justify-center text-[#FF7300] text-sm drop-shadow-[0_0_8px_rgba(255,115,0,0.6)]">
+                    <i class="fa-solid fa-mosque"></i>
+                </div>
+            </div>
+
+            <!-- Title Indicator -->
+            <span class="mt-4 text-[10.5px] font-mono tracking-widest text-neutral-200 uppercase font-black flex items-center gap-1.5">
+                <span>MEMUAT DATABASE</span>
+                <span class="text-[#FF7300] animate-pulse">...</span>
+            </span>
+
+            <!-- Status Pill Badge (Elemen 1) -->
+            <div class="mt-2.5 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 shadow-xs">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
+                </span>
+                <span class="text-[8.5px] font-mono font-bold text-neutral-400 tracking-wider uppercase">SINKRONISASI CLOUD</span>
+            </div>
+
+            <!-- Animated Mini Progress Bar (Elemen 2) -->
+            <div class="w-36 h-1 bg-neutral-900 border border-neutral-800/80 rounded-full overflow-hidden mt-2.5 relative">
+                <div class="loading-bar-glider h-full bg-gradient-to-r from-transparent via-[#FF7300] to-transparent w-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DESKTOP HEADER -->
+    <header class="hidden sm:flex border-b border-neutral-900 bg-neutral-950/70 backdrop-blur-md sticky top-0 z-50 h-14 items-center justify-center">
+        <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between">
+            <a href="Admin-Dashboard.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-[#FF7300]/50 text-[10px] font-mono text-neutral-400 hover:text-[#FF7300] transition-all duration-300 active:scale-95 font-bold shadow-xs">
+                <span>←</span> <span>Dashboard</span>
+            </a>
+            <div class="flex items-center gap-3">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-mono font-bold tracking-wider uppercase">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>KELOLA ANGGOTA</span>
+                </div>
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-900 border border-neutral-800">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-[9px] font-mono font-bold text-neutral-300 tracking-wide">SYNCED</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-4xl mx-auto px-3.5 sm:px-6 pt-0 pb-4 sm:py-5 w-full flex-grow flex flex-col gap-2.5 sm:gap-4">
+        
+        <!-- SCREEN TITLE HEADER (KONSISTEN RESMI DANA IMIP) -->
+        <div class="flex items-center justify-between gap-3 pt-1 pb-2 border-b border-neutral-900">
+            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#FF7300]/20 via-[#EA580C]/15 to-transparent border border-[#FF7300]/35 flex items-center justify-center text-sm sm:text-base shadow-xs shrink-0 text-[#FF7300]">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <h1 class="text-sm sm:text-base font-extrabold text-neutral-100 font-sans tracking-tight leading-tight flex items-center gap-1.5 truncate">
+                        <span>Database Anggota</span> <span class="text-[#FF7300]">IMIP</span>
+                    </h1>
+                    <p class="text-[9.5px] sm:text-[10.5px] text-neutral-400 font-mono mt-0.5 truncate">Daftar Pengurus Kabinet &amp; Struktur Divisi LDK IMIP 2026</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-[10px] font-mono font-bold text-[#FF7300]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>ADMIN LIVE</span>
+                </span>
+                <span class="text-[9px] font-mono text-neutral-400 bg-neutral-900 border border-neutral-800 px-2 py-1 rounded-lg font-bold">
+                    2026
+                </span>
+            </div>
+        </div>
+
+        <!-- PANEL FORM ANGGOTA BARU (RESPONSIVE: INLINE DESKTOP / FLOATING MODAL MOBILE) -->
+        <div id="anggota-form-wrapper" onclick="if(event.target === this) closeMobileAnggotaForm();" class="hidden sm:block w-full">
+            <div id="panel-form-anggota" class="bg-neutral-950 border border-neutral-900 p-3.5 sm:p-5 rounded-xl flex flex-col gap-2.5 sm:gap-3.5 shadow-xs">
+                <!-- Mobile Drag Indicator -->
+                <div class="w-10 h-1 bg-neutral-700/80 rounded-full mx-auto sm:hidden mb-1"></div>
+
+                <div class="flex items-center justify-between pb-2 border-b border-neutral-800/80">
+                    <div>
+                        <span class="text-[9px] font-mono tracking-widest text-[#FF7300] uppercase font-black block">Database Pengurus</span>
+                        <h2 class="text-xs sm:text-sm font-bold text-neutral-200 font-sans mt-0.5">Tambah Anggota Kabinet</h2>
+                    </div>
+                    <button type="button" onclick="closeMobileAnggotaForm()" class="sm:hidden w-8 h-8 rounded-full bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center text-sm transition-all cursor-pointer" title="Tutup Formulir">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form id="formTambahAnggotaAjax" onsubmit="tambahAnggotaRealTime(event)" class="flex flex-col gap-2.5 sm:gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
+                        <div>
+                            <label class="text-[9px] font-mono uppercase text-neutral-500 block mb-1 font-bold">NIM Pengurus</label>
+                            <input type="text" id="inp_nim" required placeholder="Masukkan NIM (contoh: 2490343013)" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-1.5 sm:py-2.5 text-[11px] sm:text-xs text-neutral-200 focus:outline-none focus:border-[#FF7300] font-mono">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-mono uppercase text-neutral-500 block mb-1 font-bold">Nama Lengkap</label>
+                            <input type="text" id="inp_nama" required placeholder="Masukkan nama lengkap pengurus" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-1.5 sm:py-2.5 text-[11px] sm:text-xs text-neutral-200 focus:outline-none focus:border-[#FF7300] font-sans">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
+                        <div>
+                            <label class="text-[9px] font-mono uppercase text-neutral-500 block mb-1 font-bold">Divisi / Biro</label>
+                            <select id="inp_divisi" required class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-2 sm:px-3 py-1.5 sm:py-2.5 text-[11px] sm:text-xs text-neutral-200 focus:outline-none focus:border-[#FF7300] font-sans cursor-pointer">
+                                <option value="">Pilih Divisi...</option>
+                                <option value="Departemen Kaderisasi">Departemen Kaderisasi</option>
+                                <option value="Departemen Sosial Masyarakat">Departemen Sosial Masyarakat</option>
+                                <option value="Departemen Syi'ar Islam">Departemen Syi'ar Islam</option>
+                                <option value="Departemen HuMed">Departemen HuMed</option>
+                                <option value="Divisi UUS">Divisi UUS</option>
+                                <option value="Biro Kesekretariatan">Biro Kesekretariatan</option>
+                                <option value="Biro Bendahara">Biro Bendahara</option>
+                                <option value="Pimpinan Utama">Pimpinan Utama</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-mono uppercase text-neutral-500 block mb-1 font-bold">Jabatan</label>
+                            <select id="inp_jabatan" required class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-2 sm:px-3 py-1.5 sm:py-2.5 text-[11px] sm:text-xs text-neutral-200 focus:outline-none focus:border-[#FF7300] font-sans cursor-pointer">
+                                <option value="">Pilih Jabatan...</option>
+                                <option value="Ketua Umum">Ketua Umum</option>
+                                <option value="Sekretaris Umum">Sekretaris Umum</option>
+                                <option value="Bendahara Umum">Bendahara Umum</option>
+                                <option value="Ketua Departemen">Ketua Departemen</option>
+                                <option value="Kepala Divisi">Kepala Divisi</option>
+                                <option value="Kepala Biro">Kepala Biro</option>
+                                <option value="Staff Ahli">Staff Ahli</option>
+                                <option value="Anggota">Anggota</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-[#FF7300] to-[#EA580C] hover:from-[#ea580c] hover:to-[#c2410c] text-white font-mono text-xs font-bold py-2.5 sm:py-3 rounded-xl tracking-wider transition-all active:scale-[0.98] cursor-pointer shadow-md shadow-orange-500/20 mt-0.5">
+                        TAMBAH ANGGOTA BARU ✓
+                    </button>
+                </form>
+            </div>
+        </div><!-- END ANGGOTA FORM WRAPPER -->
+
+        <!-- SEARCH BAR -->
+        <div class="bg-neutral-950 border border-neutral-900 p-2.5 sm:p-3 rounded-xl flex items-center gap-2.5 shadow-xs">
+            <i class="fa-solid fa-magnifying-glass text-xs text-neutral-500 pl-1"></i>
+            <input type="text" id="searchInput" onkeyup="filterAnggota()" placeholder="Cari nama atau NIM anggota..." class="w-full bg-transparent text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none font-sans">
+        </div>
+
+        <!-- LIST CONTAINER -->
+        <div class="flex flex-col gap-2.5">
+            <div class="flex items-center justify-between px-1">
+                <span class="text-[9px] font-mono tracking-widest text-neutral-500 uppercase font-black">DAFTAR KEPENGURUSAN</span>
+                <span id="memberCountBadge" class="text-[8px] font-mono bg-orange-950/30 border border-orange-500/30 text-[#FF7300] px-2 py-0.5 rounded-md font-bold">0 Anggota</span>
+            </div>
+
+            <div id="anggotaListContainer" class="flex flex-col gap-2.5">
+                <!-- Memuat secara dinamis -->
+                <div class="py-12 text-center text-xs text-neutral-500 font-mono">Memuat data dari database...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-neutral-900 bg-neutral-950/40 py-4 text-center mt-8">
+        <span class="text-[9px] font-mono text-neutral-600 tracking-wider uppercase font-bold">LDK IMIP ADMIN © 2026</span>
+    </footer>
+
+    <!-- ======================================================================
+         FLOATING ACTION BUTTON (MOBILE FAB FOR ANGGOTA)
+         ====================================================================== -->
+    <div id="mobile-anggota-fab-container" class="fixed bottom-[84px] right-4 sm:hidden z-40">
+        <button type="button" onclick="openMobileAnggotaForm()" aria-label="Tambah Anggota" class="w-13 h-13 rounded-full bg-gradient-to-tr from-[#FF7300] to-amber-500 text-white flex items-center justify-center text-xl shadow-[0_8px_25px_rgba(255,115,0,0.45)] border border-white/20 active:scale-90 transition-all cursor-pointer">
+            <i class="fa-solid fa-user-plus text-base"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Bottom Navigation Dock (Admin Exclusive) -->
+        <nav class="mobile-bottom-nav" aria-label="Navigasi Bawah Admin">
+        <a href="Admin-Dashboard.html" class="bottom-nav-item ">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-chart-pie text-xs"></i></div>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="Kelola-Kas.html" class="bottom-nav-item ">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-wallet text-xs"></i></div>
+            <span class="nav-label">Uang Kas</span>
+        </a>
+        <a href="All-Transaksi.html" class="bottom-nav-item ">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-receipt text-xs"></i></div>
+            <span class="nav-label">Transaksi</span>
+        </a>
+        <a href="Kelola-Proker.html" class="bottom-nav-item ">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-briefcase text-xs"></i></div>
+            <span class="nav-label">Proker</span>
+        </a>
+        <a href="Kelola-Anggota.html" class="bottom-nav-item active">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-users text-xs"></i></div>
+            <span class="nav-label">Anggota</span>
+        </a>
+    </nav>
+
+    <!-- LOGIC SCRIPTS -->
+    <script>
+        // SCRIPT URL backend
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_APPS_SCRIPT_DEPLOYMENT_ID/exec";
+
+        // Resilient storage fallbacks for Flutter WebView / Sandbox environments
+        const safeStorage = {
+            _mem: {},
+            getItem(key) {
+                try { return sessionStorage.getItem(key); } catch (e) { return this._mem[key] || null; }
+            },
+            setItem(key, val) {
+                try { sessionStorage.setItem(key, val); } catch (e) { this._mem[key] = String(val); }
+            },
+            removeItem(key) {
+                try { sessionStorage.removeItem(key); } catch (e) { delete this._mem[key]; }
+            }
+        };
+
+        const safeLocalStorage = {
+            _mem: {},
+            getItem(key) {
+                try { return localStorage.getItem(key); } catch (e) { return this._mem[key] || null; }
+            },
+            setItem(key, val) {
+                try { localStorage.setItem(key, val); } catch (e) { this._mem[key] = String(val); }
+            },
+            removeItem(key) {
+                try { localStorage.removeItem(key); } catch (e) { delete this._mem[key]; }
+            }
+        };
+
+        let localAnggota = [];
+
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+            }
+        }
+        function showLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.opacity = '1';
+                overlay.style.pointerEvents = 'auto';
+            }
+        }
+        // Safety timeout agar overlay tidak stuck jika jaringan lambat
+        setTimeout(hideLoadingOverlay, 4000);
+
+        function initKelolaAnggotaPage() {
+            fetchInitialData();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initKelolaAnggotaPage);
+        } else {
+            initKelolaAnggotaPage();
+        }
+
+        const CACHE_KEY = "ldk_db_cache";
+        const CACHE_TIME_KEY = "ldk_db_cache_time";
+        const CACHE_TTL = 3 * 60 * 1000; // 3 menit cache
+
+        // Fetch data awal dengan Cache Pintar
+        function fetchInitialData(forceRefresh = false) {
+            if (forceRefresh) {
+                safeLocalStorage.removeItem(CACHE_KEY);
+                safeLocalStorage.removeItem(CACHE_TIME_KEY);
+                safeStorage.removeItem(CACHE_KEY);
+                safeStorage.removeItem(CACHE_TIME_KEY);
+                showLoadingOverlay();
+            }
+
+            const cachedData = safeLocalStorage.getItem(CACHE_KEY) || safeStorage.getItem(CACHE_KEY);
+            const cachedTime = safeLocalStorage.getItem(CACHE_TIME_KEY) || safeStorage.getItem(CACHE_TIME_KEY);
+            const now = Date.now();
+            let hasRenderedFromCache = false;
+
+            if (cachedData) {
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    if (parsed && (parsed.status === "success" || parsed.anggota)) {
+                        localAnggota = parsed.anggota || [];
+                        renderAnggotaList();
+                        hasRenderedFromCache = true;
+                        hideLoadingOverlay();
+
+                        // Jika cache masih dalam masa TTL dan tidak force refresh, gunakan langsung tanpa re-fetch
+                        if (cachedTime && (now - Number(cachedTime) < CACHE_TTL) && !forceRefresh) {
+                            return;
+                        }
+                    }
+                } catch(e) {
+                    console.error("Gagal membaca cache lokal", e);
+                }
+            }
+
+            if (!hasRenderedFromCache) {
+                showLoadingOverlay();
+            }
+
+            if (!GOOGLE_SCRIPT_URL) {
+                // Fallback dummy jika URL kosong
+                if (!hasRenderedFromCache) {
+                    localAnggota = [
+                        { id: "M001", nim: "2490343013", name: "Muhammad Haris", divisi: "Departemen HuMed", jabatan: "Anggota", is_active: true },
+                        { id: "M002", nim: "2490444040", name: "Hafiz Alfariz", divisi: "Pimpinan Utama", jabatan: "Ketua Umum", is_active: true }
+                    ];
+                    renderAnggotaList();
+                }
+                hideLoadingOverlay();
+                return;
+            }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+            fetch(GOOGLE_SCRIPT_URL + "?action=get_all_data", { signal: controller.signal })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success") {
+                        localAnggota = res.anggota || [];
+                        const timestampStr = Date.now().toString();
+                        safeLocalStorage.setItem(CACHE_KEY, JSON.stringify(res));
+                        safeLocalStorage.setItem(CACHE_TIME_KEY, timestampStr);
+                        safeStorage.setItem(CACHE_KEY, JSON.stringify(res));
+                        safeStorage.setItem(CACHE_TIME_KEY, timestampStr);
+                        renderAnggotaList();
+                    }
+                })
+                .catch(err => {
+                    console.error("Fetch Error:", err);
+                    if (!hasRenderedFromCache) {
+                        const container = document.getElementById('anggotaListContainer');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="py-12 text-center text-xs text-red-500 font-mono border border-red-950/20 rounded-xl bg-red-950/5">
+                                    Koneksi gagal / database offline!
+                                </div>`;
+                        }
+                    }
+                })
+                .finally(() => {
+                    clearTimeout(timeoutId);
+                    hideLoadingOverlay();
+                });
+        }
+
+        // Render Anggota ke HTML secara batch untuk kecepatan maksimal
+        function renderAnggotaList() {
+            const container = document.getElementById('anggotaListContainer');
+            if (!container) return;
+
+            const badge = document.getElementById('memberCountBadge');
+            if (badge) badge.innerText = `${localAnggota.length} Anggota`;
+
+            if (localAnggota.length === 0) {
+                container.innerHTML = `<div class="py-12 text-center text-xs text-neutral-500 font-mono border border-neutral-900 rounded-xl bg-neutral-950/20">Belum ada data anggota.</div>`;
+                return;
+            }
+
+            let cardsHtml = '';
+            for (let i = 0; i < localAnggota.length; i++) {
+                const m = localAnggota[i];
+                const badgeActive = m.is_active !== false 
+                    ? `<span class="px-2 py-0.5 rounded-md text-[8px] font-bold font-sans bg-emerald-950/50 border border-emerald-900/60 text-emerald-400 uppercase tracking-wider">Aktif</span>`
+                    : `<span class="px-2 py-0.5 rounded-md text-[8px] font-bold font-sans bg-red-950/50 border border-red-900/60 text-rose-400 uppercase tracking-wider">Tidak Aktif</span>`;
+                
+                cardsHtml += `
+                    <div class="anggota-card bg-neutral-950 border border-neutral-900 p-3.5 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all duration-300 hover:border-[#FF7300]/30" data-name="${String(m.name || '').toLowerCase()}" data-nim="${String(m.nim || '').toLowerCase()}">
+                        <div class="overflow-hidden flex flex-col gap-0.5">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-xs font-bold text-neutral-200 truncate font-sans">${m.name}</h3>
+                                ${badgeActive}
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-2 text-[9px] font-mono text-neutral-500 mt-0.5">
+                                <span class="text-neutral-400 font-semibold select-all">${m.nim}</span>
+                                <span class="text-neutral-800">|</span>
+                                <span class="text-neutral-400">${m.divisi} — ${m.jabatan}</span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="bukaModalEdit('${m.id}')" class="bg-neutral-900 hover:bg-orange-950/30 border border-neutral-800 hover:border-[#FF7300]/40 text-[#FF7300] text-[10px] font-bold px-3 py-1.5 rounded-lg font-mono transition-transform active:scale-95 cursor-pointer">
+                            EDIT
+                        </button>
+                    </div>
+                `;
+            }
+            container.innerHTML = cardsHtml;
+        }
+
+        // Filter Anggota berdasarkan input
+        function filterAnggota() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const cards = document.getElementsByClassName('anggota-card');
+            for (let i = 0; i < cards.length; i++) {
+                const name = cards[i].getAttribute('data-name') || '';
+                const nim = cards[i].getAttribute('data-nim') || '';
+                if (name.includes(query) || nim.includes(query)) {
+                    cards[i].style.display = '';
+                } else {
+                    cards[i].style.display = 'none';
+                }
+            }
+        }
+
+        // MOBILE FLOATING FORM CONTROLLER
+        window.openMobileAnggotaForm = function() {
+            const wrapper = document.getElementById('anggota-form-wrapper');
+            const panel = document.getElementById('panel-form-anggota');
+            if (wrapper) {
+                wrapper.classList.remove('hidden');
+                wrapper.classList.add('mobile-modal-active');
+                document.body.classList.add('overflow-hidden-mobile');
+                if (panel) panel.scrollTop = 0;
+            }
+        };
+
+        window.closeMobileAnggotaForm = function() {
+            const wrapper = document.getElementById('anggota-form-wrapper');
+            if (wrapper) {
+                wrapper.classList.remove('mobile-modal-active');
+                if (window.innerWidth < 640) {
+                    wrapper.classList.add('hidden');
+                }
+            }
+            document.body.classList.remove('overflow-hidden-mobile');
+        };
+
+        // Tambah Anggota Real-Time
+        function tambahAnggotaRealTime(e) {
+            e.preventDefault();
+            const nim = document.getElementById('inp_nim').value.trim();
+            const nama = document.getElementById('inp_nama').value.trim();
+            const divisi = document.getElementById('inp_divisi').value;
+            const jabatan = document.getElementById('inp_jabatan').value;
+
+            if (!nim || !nama || !divisi || !jabatan) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Mohon isi semua field!' });
+                return;
+            }
+
+            if (!GOOGLE_SCRIPT_URL) {
+                const randomId = "MEM-" + Date.now();
+                localAnggota.unshift({
+                    id: randomId,
+                    nim: nim,
+                    name: nama,
+                    divisi: divisi,
+                    jabatan: jabatan,
+                    is_active: true
+                });
+                Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Anggota tersimpan secara lokal.', showConfirmButton: false, timer: 1000 });
+                document.getElementById('formTambahAnggotaAjax').reset();
+                closeMobileAnggotaForm();
+                renderAnggotaList();
+                return;
+            }
+
+            Swal.fire({
+                title: 'Mendaftarkan Anggota...',
+                text: 'Menulis data pengurus baru ke Google Sheets.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "insert_member",
+                    admin_token: sessionStorage.getItem('adminAuthToken') || '',
+                    nim: nim,
+                    nama: nama,
+                    divisi: divisi,
+                    jabatan: jabatan
+                })
+            })
+            .then(() => {
+                setTimeout(() => {
+                    Swal.close();
+                    Swal.fire({ icon: 'success', title: 'Anggota Berhasil Ditambahkan!', showConfirmButton: false, timer: 1200 });
+                    document.getElementById('formTambahAnggotaAjax').reset();
+                    closeMobileAnggotaForm();
+                    fetchInitialData(true);
+                }, 1500);
+            })
+            .catch(err => {
+                Swal.close();
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Gagal Menambahkan!', text: err.toString() });
+            });
+        }
+
+        // Buka Modal Edit Anggota
+        function bukaModalEdit(id) {
+            const member = localAnggota.find(m => m.id.toString() === id.toString());
+            if (!member) return;
+
+            const divisis = [
+                'Departemen Kaderisasi',
+                'Departemen Sosial Masyarakat',
+                'Departemen Syi\'ar Islam',
+                'Departemen HuMed',
+                'Divisi UUS',
+                'Biro Kesekretariatan',
+                'Biro Bendahara',
+                'Pimpinan Utama'
+            ];
+
+            const jabatans = [
+                'Ketua Umum',
+                'Sekretaris Umum',
+                'Bendahara Umum',
+                'Ketua Departemen',
+                'Kepala Divisi',
+                'Kepala Biro',
+                'Staff Ahli',
+                'Anggota'
+            ];
+
+            let divisiOptions = '';
+            divisis.forEach(d => {
+                const selected = member.divisi === d ? 'selected' : '';
+                divisiOptions += `<option value="${d}" ${selected}>${d}</option>`;
+            });
+
+            let jabatanOptions = '';
+            jabatans.forEach(j => {
+                const selected = member.jabatan === j ? 'selected' : '';
+                jabatanOptions += `<option value="${j}" ${selected}>${j}</option>`;
+            });
+
+            const isActiveChecked = member.is_active !== false ? 'checked' : '';
+
+            Swal.fire({
+                title: 'EDIT DETAIL ANGGOTA',
+                html: `
+                    <div class="text-left flex flex-col gap-3 font-sans mt-3">
+                        <div>
+                            <label class="text-[8px] font-mono text-neutral-500 uppercase font-black block mb-1">NIM Pengurus</label>
+                            <input type="text" id="edit_nim" value="${member.nim}" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-[#FF7300] font-mono">
+                        </div>
+                        <div>
+                            <label class="text-[8px] font-mono text-neutral-500 uppercase font-black block mb-1">Nama Lengkap</label>
+                            <input type="text" id="edit_nama" value="${member.name}" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-[#FF7300] font-sans">
+                        </div>
+                        <div>
+                            <label class="text-[8px] font-mono text-neutral-500 uppercase font-black block mb-1">Divisi / Biro</label>
+                            <select id="edit_divisi" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-[#FF7300] font-sans">
+                                ${divisiOptions}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[8px] font-mono text-neutral-500 uppercase font-black block mb-1">Jabatan</label>
+                            <select id="edit_jabatan" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-[#FF7300] font-sans">
+                                ${jabatanOptions}
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 py-1 mt-1 border-t border-neutral-900/60 pt-3">
+                            <input type="checkbox" id="edit_is_active" ${isActiveChecked} class="w-4 h-4 rounded border-neutral-800 bg-neutral-950 accent-[#FF7300] cursor-pointer">
+                            <label for="edit_is_active" class="text-xs font-bold text-neutral-200 cursor-pointer select-none">Status Anggota Aktif</label>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'SIMPAN PERUBAHAN ✓',
+                cancelButtonText: 'BATAL ✕',
+                focusConfirm: false,
+                preConfirm: () => {
+                    return {
+                        nim: document.getElementById('edit_nim').value.trim(),
+                        nama: document.getElementById('edit_nama').value.trim(),
+                        divisi: document.getElementById('edit_divisi').value,
+                        jabatan: document.getElementById('edit_jabatan').value,
+                        is_active: document.getElementById('edit_is_active').checked
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const data = result.value;
+                    simpanPerubahanAnggota(id, data);
+                }
+            });
+        }
+
+        // Simpan Perubahan Anggota
+        function simpanPerubahanAnggota(id, data) {
+            if (!GOOGLE_SCRIPT_URL) {
+                const idx = localAnggota.findIndex(m => m.id.toString() === id.toString());
+                if (idx !== -1) {
+                    localAnggota[idx].nim = data.nim;
+                    localAnggota[idx].name = data.nama;
+                    localAnggota[idx].divisi = data.divisi;
+                    localAnggota[idx].jabatan = data.jabatan;
+                    localAnggota[idx].is_active = data.is_active;
+                }
+                Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Perubahan disimpan secara lokal.', showConfirmButton: false, timer: 1000 });
+                renderAnggotaList();
+                return;
+            }
+
+            Swal.fire({
+                title: 'Menyimpan Perubahan...',
+                text: 'Mengirimkan pembaruan data ke Google Sheets.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "edit_member",
+                    admin_token: sessionStorage.getItem('adminAuthToken') || '',
+                    id: id,
+                    nim: data.nim,
+                    nama: data.nama,
+                    divisi: data.divisi,
+                    jabatan: data.jabatan,
+                    is_active: data.is_active
+                })
+            })
+            .then(() => {
+                setTimeout(() => {
+                    Swal.close();
+                    Swal.fire({ icon: 'success', title: 'Pembaruan Berhasil!', showConfirmButton: false, timer: 1200 });
+                    fetchInitialData(true);
+                }, 1500);
+            })
+            .catch(err => {
+                Swal.close();
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Gagal Menyimpan!', text: err.toString() });
+            });
+        }
+    </script>
+</body>
+</html>
