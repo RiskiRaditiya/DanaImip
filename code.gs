@@ -2301,24 +2301,43 @@ function scanReceiptWithGemini(p) {
     }
   };
 
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + encodeURIComponent(apiKey);
-  const res = UrlFetchApp.fetch(url, {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify(requestBody),
-    muteHttpExceptions: true
-  });
+  const models = ["gemini-3.8-flash", "gemini-3.8-flash-lite"];
+  let lastCode = 0;
+  let lastText = "";
+  let successText = "";
 
-  const code = res.getResponseCode();
-  const text = res.getContentText();
-  if (code < 200 || code >= 300) {
+  for (let m = 0; m < models.length; m++) {
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + models[m] + ":generateContent?key=" + encodeURIComponent(apiKey);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = UrlFetchApp.fetch(url, {
+        method: "post",
+        contentType: "application/json",
+        payload: JSON.stringify(requestBody),
+        muteHttpExceptions: true
+      });
+      lastCode = res.getResponseCode();
+      lastText = res.getContentText();
+      if (lastCode >= 200 && lastCode < 300) {
+        successText = lastText;
+        break;
+      }
+      if (lastCode === 503 || lastCode === 429) {
+        Utilities.sleep(1500);
+        continue;
+      }
+      break;
+    }
+    if (successText) break;
+  }
+
+  if (!successText) {
     return jsonResponse({
       status: "error",
-      message: "Gemini API error (" + code + "): " + text.substring(0, 300)
+      message: "Gemini API sedang sibuk/error (" + lastCode + "): " + lastText.substring(0, 300)
     });
   }
 
-  const parsedRes = JSON.parse(text);
+  const parsedRes = JSON.parse(successText);
   const candidateText =
     parsedRes &&
     parsedRes.candidates &&
