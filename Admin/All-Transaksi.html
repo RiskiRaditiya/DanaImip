@@ -868,29 +868,7 @@
                     </button>
                 </div>
 
-                <!-- AUTO-SCAN STRUK (AI) ADD-ON -->
-                <div class="bg-gradient-to-r from-rose-950/35 via-neutral-900/70 to-neutral-900 border border-rose-500/25 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-8 h-8 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 flex items-center justify-center text-xs shrink-0">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        </span>
-                        <div>
-                            <span class="text-[11px] font-bold text-neutral-100 block leading-tight">Auto-Scan Struk / Nota (AI)</span>
-                            <span class="text-[10px] text-neutral-400 block">Foto struk untuk isi otomatis tanggal, nama barang, qty &amp; harga.</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button type="button" id="btn_reopen_scan_modal" onclick="openScanReceiptModal()" class="hidden items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-200 text-[11px] font-bold cursor-pointer transition-all">
-                            <i class="fa-solid fa-receipt"></i>
-                            <span>Cek Hasil Scan</span>
-                        </button>
-                        <label for="out_scan_receipt_input" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-300 text-[11px] font-bold cursor-pointer transition-all shrink-0 active:scale-[0.98]">
-                            <i class="fa-solid fa-camera"></i>
-                            <span>Scan Struk</span>
-                        </label>
-                    </div>
-                    <input type="file" id="out_scan_receipt_input" accept="image/*" onchange="handleScanReceipt(this)" class="hidden">
-                </div>
+                <input type="file" id="out_scan_receipt_input" accept="image/*" onchange="handleScanReceipt(this)" class="hidden">
                 
                 <form id="pengeluaranForm" onsubmit="tambahPengeluaranLokal(event)" class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
