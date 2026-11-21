@@ -758,7 +758,7 @@ function insertTransaction(p) {
   const notifMsg = ((jenis === "Masuk") ? "Pemasukan: " : "Pengeluaran: ") + (txObj.uraian || txObj.keterangan) + " senilai Rp " + Number(parsedJumlah).toLocaleString('id-ID');
   kirimNotifikasiFirebaseV1(notifTitle, notifMsg);
 
-  return jsonResponse({ status: "success", id: newId });
+  return jsonResponse({ status: "success", id: newId, drive_url: driveUrl });
 }
 
 // ============================================================
@@ -926,7 +926,7 @@ function insertProker(p) {
 
   appendRowByHeader(sheet, prokerObj, defaultProkerHeaders);
 
-  return jsonResponse({ status: "success", id: newId });
+  return jsonResponse({ status: "success", id: newId, drive_url: driveUrl });
 }
 
 // ============================================================
@@ -2055,7 +2055,7 @@ function insertMember(p) {
   
   appendRowByHeader(sheet, memberObj, defaultAnggotaHeaders);
   
-  return jsonResponse({ status: "success", id: newId });
+  return jsonResponse({ status: "success", id: newId, drive_url: driveUrl });
 }
 
 // ============================================================

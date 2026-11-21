@@ -4489,6 +4489,8 @@
                 const userId = member.id;
                 const picName = (userId && typeof membersMap !== 'undefined') ? (membersMap[userId.toString()] || member.name || '') : (member.name || '');
 
+                let sharedDriveUrl = '';
+
                 for (let i = 0; i < validItems.length; i++) {
                     const it = validItems[i];
                     const qty = Number(it.qty) || 1;
@@ -4498,31 +4500,47 @@
                     const unitVal = sat ? `${qty} ${sat}` : (qty > 1 ? String(qty) : 'NULL');
                     const finalNote = (it.keterangan || '').trim();
 
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'insert_transaction',
-                            admin_token: sessionStorage.getItem('adminAuthToken') || '',
-                            tanggal: tgl,
-                            divisi: divisi,
-                            uraian: it.nama.trim(),
-                            keterangan: finalNote,
-                            unit: unitVal,
-                            harga_satuan: price,
-                            jumlah: total,
-                            nominal: total,
-                            jenis: 'Keluar',
-                            metode: met,
-                            kategori: kat,
-                            proker_id: prokerId,
-                            user_id: userId,
-                            nama_pic_pengeluar: picName,
-                            bukti: i === 0 ? (currentScannedData.imageBase64 || '') : '',
-                            status_reimburse: 'Tidak Perlu'
-                        })
-                    });
+                    const payloadObj = {
+                        action: 'insert_transaction',
+                        admin_token: sessionStorage.getItem('adminAuthToken') || '',
+                        tanggal: tgl,
+                        divisi: divisi,
+                        uraian: it.nama.trim(),
+                        keterangan: finalNote,
+                        unit: unitVal,
+                        harga_satuan: price,
+                        jumlah: total,
+                        nominal: total,
+                        jenis: 'Keluar',
+                        metode: met,
+                        kategori: kat,
+                        proker_id: prokerId,
+                        user_id: userId,
+                        nama_pic_pengeluar: picName,
+                        bukti: i === 0 ? (currentScannedData.imageBase64 || '') : sharedDriveUrl,
+                        status_reimburse: 'Tidak Perlu'
+                    };
+
+                    if (i === 0 && currentScannedData.imageBase64) {
+                        const firstRes = await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify(payloadObj)
+                        });
+                        try {
+                            const firstJson = await firstRes.json();
+                            if (firstJson && firstJson.drive_url) {
+                                sharedDriveUrl = firstJson.drive_url;
+                            }
+                        } catch (e) {}
+                    } else {
+                        await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payloadObj)
+                        });
+                    }
                 }
 
                 Swal.close();
