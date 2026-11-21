@@ -3931,9 +3931,13 @@
                 const compressedBase64 = await compressImageFile(file);
                 attachScannedImageToOutForm(compressedBase64, file.name);
 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         action: 'scan_receipt',
                         admin_token: sessionStorage.getItem('adminAuthToken') || '',
@@ -3941,6 +3945,7 @@
                         mime_type: file.type || 'image/jpeg'
                     })
                 });
+                clearTimeout(timeoutId);
 
                 const json = await res.json();
                 Swal.close();

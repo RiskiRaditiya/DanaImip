@@ -2224,19 +2224,24 @@ function getFcmAccessToken(serviceAccount) {
 // ============================================================
 function getAvailableGeminiModels(apiKey) {
   const fallbackList = [
-    "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
     "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite"
+    "gemini-3.1-flash-lite",
+    "gemini-3.7-flash",
+    "gemini-3.8-flash"
   ];
 
   try {
     const cache = CacheService.getScriptCache();
-    const cached = cache.get("GEMINI_ACTIVE_MODELS_V1");
+    const lastWorking = cache.get("LAST_WORKING_GEMINI_MODEL");
+    const cached = cache.get("GEMINI_FAST_MODELS_V2");
     if (cached) {
-      const arr = JSON.parse(cached);
-      if (Array.isArray(arr) && arr.length > 0) return arr;
+      let arr = JSON.parse(cached);
+      if (Array.isArray(arr) && arr.length > 0) {
+        if (lastWorking) {
+          arr = [lastWorking].concat(arr.filter(x => x !== lastWorking));
+        }
+        return arr.slice(0, 4);
+      }
     }
 
     const listUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" + encodeURIComponent(apiKey);
@@ -2251,21 +2256,20 @@ function getAvailableGeminiModels(apiKey) {
         const methods = m.supportedGenerationMethods || [];
         if (methods.indexOf("generateContent") === -1) return false;
         if (!/^gemini-/i.test(name)) return false;
-        if (/(embedding|imagen|veo|tts|audio|aqa|robotics|computer-use|image-generation|live)/i.test(name)) return false;
-        return /(flash|pro)/i.test(name);
+        if (/(embedding|imagen|veo|tts|audio|aqa|robotics|computer-use|image-generation|live|thinking|exp|preview)/i.test(name)) return false;
+        // Hanya pilih model cepat (flash / flash-lite), hindari pro yang lambat
+        return /flash/i.test(name);
       })
       .map(m => (m.name || "").replace(/^models\//, ""));
 
     if (usable.length === 0) return fallbackList;
 
-    // Prioritaskan flash terbaru -> flash-lite -> pro, hindari alias -latest/-exp di urutan depan jika ada versi stabil
+    // Prioritaskan flash-lite (paling cepat & jarang 503) lalu flash terbaru
     usable.sort((a, b) => {
       const score = (name) => {
         let s = 0;
-        if (/flash/i.test(name) && !/lite/i.test(name)) s += 300;
-        else if (/flash-lite/i.test(name)) s += 200;
-        else if (/pro/i.test(name)) s += 100;
-        if (/exp|preview/i.test(name)) s -= 20;
+        if (/flash-lite/i.test(name)) s += 300;
+        else if (/flash/i.test(name)) s += 200;
         const verMatch = name.match(/gemini-(\d+(?:\.\d+)?)/i);
         if (verMatch) s += parseFloat(verMatch[1]) * 10;
         return s;
@@ -2273,9 +2277,12 @@ function getAvailableGeminiModels(apiKey) {
       return score(b) - score(a);
     });
 
-    const topModels = usable.slice(0, 8);
-    cache.put("GEMINI_ACTIVE_MODELS_V1", JSON.stringify(topModels), 600);
-    return topModels;
+    let topModels = usable.slice(0, 4);
+    cache.put("GEMINI_FAST_MODELS_V2", JSON.stringify(topModels), 600);
+    if (lastWorking) {
+      topModels = [lastWorking].concat(topModels.filter(x => x !== lastWorking));
+    }
+    return topModels.slice(0, 4);
   } catch (e) {
     return fallbackList;
   }
@@ -2361,12 +2368,14 @@ function scanReceiptWithGemini(p) {
   };
 
   const models = getAvailableGeminiModels(apiKey);
+  const startMs = Date.now();
   let lastCode = 0;
   let lastText = "";
   let successText = "";
   let usedModel = "";
 
   for (let m = 0; m < models.length; m++) {
+    if (Date.now() - startMs > 22000) break;
     const modelName = models[m];
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(modelName) + ":generateContent?key=" + encodeURIComponent(apiKey);
     const res = UrlFetchApp.fetch(url, {
@@ -2381,6 +2390,9 @@ function scanReceiptWithGemini(p) {
     if (lastCode >= 200 && lastCode < 300) {
       successText = lastText;
       usedModel = modelName;
+      try {
+        CacheService.getScriptCache().put("LAST_WORKING_GEMINI_MODEL", modelName, 1800);
+      } catch (cacheErr) {}
       break;
     }
 
@@ -2394,7 +2406,7 @@ function scanReceiptWithGemini(p) {
   if (!successText) {
     return jsonResponse({
       status: "error",
-      message: "Semua model Gemini sedang sibuk/error (" + lastCode + "): " + lastText.substring(0, 300)
+      message: "Semua model cepat Gemini sedang sibuk/timeout (" + lastCode + "): " + lastText.substring(0, 250)
     });
   }
 
