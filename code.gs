@@ -2234,8 +2234,8 @@ function getAvailableGeminiModels(apiKey) {
 
   try {
     const cache = CacheService.getScriptCache();
-    const lastWorking = cache.get("LAST_WORKING_GEMINI_MODEL_V3");
-    const cached = cache.get("GEMINI_FAST_MODELS_V3");
+    const lastWorking = cache.get("LAST_WORKING_GEMINI_MODEL_V4");
+    const cached = cache.get("GEMINI_FAST_MODELS_V4");
     if (cached) {
       let arr = JSON.parse(cached);
       if (Array.isArray(arr) && arr.length > 0) {
@@ -2267,13 +2267,13 @@ function getAvailableGeminiModels(apiKey) {
 
     if (usable.length === 0) return fallbackList;
 
-    // Urutkan berdasarkan versi tertinggi dulu, lalu flash-lite / flash
+    // Urutkan flash-lite 3.x terlebih dahulu (paling cepat 2-4 detik, tanpa jeda thinking) lalu flash versi tertinggi
     usable.sort((a, b) => {
       const score = (name) => {
         let s = 0;
+        if (/flash-lite/i.test(name)) s += 5000;
         const verMatch = name.match(/gemini-(\d+(?:\.\d+)?)/i);
         if (verMatch) s += parseFloat(verMatch[1]) * 1000;
-        if (/flash-lite/i.test(name)) s += 50;
         return s;
       };
       return score(b) - score(a);
@@ -2282,7 +2282,7 @@ function getAvailableGeminiModels(apiKey) {
     // Gabungkan dengan fallbackList agar model resmi terbaru selalu tercakup tanpa duplikat
     const merged = Array.from(new Set(usable.concat(fallbackList)));
     let topModels = merged.slice(0, 5);
-    cache.put("GEMINI_FAST_MODELS_V3", JSON.stringify(topModels), 600);
+    cache.put("GEMINI_FAST_MODELS_V4", JSON.stringify(topModels), 600);
     if (lastWorking && !/^gemini-[12]\./i.test(lastWorking)) {
       topModels = [lastWorking].concat(topModels.filter(x => x !== lastWorking));
     }
@@ -2400,7 +2400,7 @@ function scanReceiptWithGemini(p) {
       successText = lastText;
       usedModel = modelName;
       try {
-        CacheService.getScriptCache().put("LAST_WORKING_GEMINI_MODEL_V3", modelName, 1800);
+        CacheService.getScriptCache().put("LAST_WORKING_GEMINI_MODEL_V4", modelName, 1800);
       } catch (cacheErr) {}
       break;
     }
