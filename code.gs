@@ -2222,6 +2222,65 @@ function getFcmAccessToken(serviceAccount) {
 // Simpan API Key di Apps Script -> Project Settings -> Script Properties
 // dengan nama key: GEMINI_API_KEY
 // ============================================================
+function getAvailableGeminiModels(apiKey) {
+  const fallbackList = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite"
+  ];
+
+  try {
+    const cache = CacheService.getScriptCache();
+    const cached = cache.get("GEMINI_ACTIVE_MODELS_V1");
+    if (cached) {
+      const arr = JSON.parse(cached);
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    }
+
+    const listUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" + encodeURIComponent(apiKey);
+    const res = UrlFetchApp.fetch(listUrl, { method: "get", muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) return fallbackList;
+
+    const json = JSON.parse(res.getContentText());
+    const rawModels = (json && Array.isArray(json.models)) ? json.models : [];
+    const usable = rawModels
+      .filter(m => {
+        const name = (m.name || "").replace(/^models\//, "");
+        const methods = m.supportedGenerationMethods || [];
+        if (methods.indexOf("generateContent") === -1) return false;
+        if (!/^gemini-/i.test(name)) return false;
+        if (/(embedding|imagen|veo|tts|audio|aqa|robotics|computer-use|image-generation|live)/i.test(name)) return false;
+        return /(flash|pro)/i.test(name);
+      })
+      .map(m => (m.name || "").replace(/^models\//, ""));
+
+    if (usable.length === 0) return fallbackList;
+
+    // Prioritaskan flash terbaru -> flash-lite -> pro, hindari alias -latest/-exp di urutan depan jika ada versi stabil
+    usable.sort((a, b) => {
+      const score = (name) => {
+        let s = 0;
+        if (/flash/i.test(name) && !/lite/i.test(name)) s += 300;
+        else if (/flash-lite/i.test(name)) s += 200;
+        else if (/pro/i.test(name)) s += 100;
+        if (/exp|preview/i.test(name)) s -= 20;
+        const verMatch = name.match(/gemini-(\d+(?:\.\d+)?)/i);
+        if (verMatch) s += parseFloat(verMatch[1]) * 10;
+        return s;
+      };
+      return score(b) - score(a);
+    });
+
+    const topModels = usable.slice(0, 8);
+    cache.put("GEMINI_ACTIVE_MODELS_V1", JSON.stringify(topModels), 600);
+    return topModels;
+  } catch (e) {
+    return fallbackList;
+  }
+}
+
 function scanReceiptWithGemini(p) {
   const apiKey = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
   if (!apiKey) {
@@ -2301,39 +2360,41 @@ function scanReceiptWithGemini(p) {
     }
   };
 
-  const models = ["gemini-3.8-flash", "gemini-3.8-flash-lite"];
+  const models = getAvailableGeminiModels(apiKey);
   let lastCode = 0;
   let lastText = "";
   let successText = "";
+  let usedModel = "";
 
   for (let m = 0; m < models.length; m++) {
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + models[m] + ":generateContent?key=" + encodeURIComponent(apiKey);
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const res = UrlFetchApp.fetch(url, {
-        method: "post",
-        contentType: "application/json",
-        payload: JSON.stringify(requestBody),
-        muteHttpExceptions: true
-      });
-      lastCode = res.getResponseCode();
-      lastText = res.getContentText();
-      if (lastCode >= 200 && lastCode < 300) {
-        successText = lastText;
-        break;
-      }
-      if (lastCode === 503 || lastCode === 429) {
-        Utilities.sleep(1500);
-        continue;
-      }
+    const modelName = models[m];
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(modelName) + ":generateContent?key=" + encodeURIComponent(apiKey);
+    const res = UrlFetchApp.fetch(url, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(requestBody),
+      muteHttpExceptions: true
+    });
+    lastCode = res.getResponseCode();
+    lastText = res.getContentText();
+
+    if (lastCode >= 200 && lastCode < 300) {
+      successText = lastText;
+      usedModel = modelName;
       break;
     }
-    if (successText) break;
+
+    // Jika penuh (503), kena limit (429), atau tidak tersedia (404), langsung lompat ke model berikutnya
+    if (lastCode === 503 || lastCode === 429 || lastCode === 404 || lastCode === 400) {
+      continue;
+    }
+    break;
   }
 
   if (!successText) {
     return jsonResponse({
       status: "error",
-      message: "Gemini API sedang sibuk/error (" + lastCode + "): " + lastText.substring(0, 300)
+      message: "Semua model Gemini sedang sibuk/error (" + lastCode + "): " + lastText.substring(0, 300)
     });
   }
 
