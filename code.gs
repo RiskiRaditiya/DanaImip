@@ -432,8 +432,7 @@ function getAllData(callback) {
 // ============================================================
 // SISTEM KEAMANAN & OTORISASI ADMIN (LDK IMIP 2026)
 // ============================================================
-// Saran: simpan di Script Properties (ADMIN_SECRET_KEY)
-const DEFAULT_ADMIN_TOKEN = "YOUR_SECURE_ADMIN_TOKEN_HERE";
+const DEFAULT_ADMIN_TOKEN = "LDK_IMIP_BENDAHARA_2026_SECRET_AUTH_TOKEN";
 
 function computeSha256(str) {
   if (!str) return "";
@@ -527,7 +526,8 @@ function doPost(e) {
       "delete_proker",
       "edit_transaction_relation",
       "insert_member",
-      "edit_member"
+      "edit_member",
+      "scan_receipt"
     ];
 
     if (protectedActions.indexOf(action) !== -1) {
@@ -553,6 +553,7 @@ function doPost(e) {
     if (action === "edit_transaction_relation") return editTransactionRelation(payload);
     if (action === "insert_member")             return insertMember(payload);
     if (action === "edit_member")               return editMember(payload);
+    if (action === "scan_receipt")              return scanReceiptWithGemini(payload);
 
     return jsonResponse({ status: "error", message: "Action tidak dikenal: " + action });
   } catch (err) {
@@ -2214,6 +2215,126 @@ function getFcmAccessToken(serviceAccount) {
 
   const tokenData = JSON.parse(response.getContentText());
   return tokenData.access_token;
+}
+
+// ============================================================
+// AI RECEIPT SCANNER (GEMINI VISION) — NON-BREAKING ADD-ON
+// Simpan API Key di Apps Script -> Project Settings -> Script Properties
+// dengan nama key: GEMINI_API_KEY
+// ============================================================
+function scanReceiptWithGemini(p) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
+  if (!apiKey) {
+    return jsonResponse({
+      status: "error",
+      message: "GEMINI_API_KEY belum disetel di Script Properties Google Apps Script."
+    });
+  }
+
+  let rawBase64 = (p && p.image_base64) ? p.image_base64.toString().trim() : "";
+  if (!rawBase64) {
+    return jsonResponse({ status: "error", message: "Gambar struk tidak ditemukan." });
+  }
+
+  let mimeType = (p && p.mime_type) ? p.mime_type.toString() : "image/jpeg";
+  const dataUrlMatch = rawBase64.match(/^data:([^;]+);base64,(.+)$/);
+  if (dataUrlMatch) {
+    mimeType = dataUrlMatch[1];
+    rawBase64 = dataUrlMatch[2];
+  }
+
+  const promptText = [
+    "Ekstrak data struk/nota belanja Indonesia ini menjadi JSON terstruktur.",
+    "Aturan:",
+    "- tanggal: format YYYY-MM-DD (kosongkan \"\" jika tidak terbaca).",
+    "- toko: nama toko/merchant singkat (kosongkan \"\" jika tidak ada).",
+    "- metode: \"Tunai\" atau \"GoPay\" jika jelas tertulis, selain itu \"\".",
+    "- items: daftar barang/jasa. Untuk setiap item: nama (ringkas & jelas), qty (angka >= 1), satuan (misal Pcs, Pack, Box, Porsi, Set, atau \"\"), harga_satuan (angka integer rupiah tanpa titik/koma), total (qty * harga_satuan dalam rupiah).",
+    "- diskon: total diskon (angka positif, 0 jika tidak ada).",
+    "- pajak_atau_admin: total pajak/biaya admin/pembulatan (angka integer, 0 jika tidak ada).",
+    "- total_akhir: grand total di struk (angka integer)."
+  ].join("\n");
+
+  const requestBody = {
+    contents: [
+      {
+        parts: [
+          { text: promptText },
+          {
+            inlineData: {
+              mimeType: mimeType,
+              data: rawBase64
+            }
+          }
+        ]
+      }
+    ],
+    generationConfig: {
+      temperature: 0.1,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "OBJECT",
+        properties: {
+          toko: { type: "STRING" },
+          tanggal: { type: "STRING" },
+          metode: { type: "STRING" },
+          items: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                nama: { type: "STRING" },
+                qty: { type: "NUMBER" },
+                satuan: { type: "STRING" },
+                harga_satuan: { type: "NUMBER" },
+                total: { type: "NUMBER" }
+              },
+              required: ["nama", "qty", "harga_satuan", "total"]
+            }
+          },
+          diskon: { type: "NUMBER" },
+          pajak_atau_admin: { type: "NUMBER" },
+          total_akhir: { type: "NUMBER" }
+        },
+        required: ["toko", "tanggal", "items", "total_akhir"]
+      }
+    }
+  };
+
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(apiKey);
+  const res = UrlFetchApp.fetch(url, {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify(requestBody),
+    muteHttpExceptions: true
+  });
+
+  const code = res.getResponseCode();
+  const text = res.getContentText();
+  if (code < 200 || code >= 300) {
+    return jsonResponse({
+      status: "error",
+      message: "Gemini API error (" + code + "): " + text.substring(0, 300)
+    });
+  }
+
+  const parsedRes = JSON.parse(text);
+  const candidateText =
+    parsedRes &&
+    parsedRes.candidates &&
+    parsedRes.candidates[0] &&
+    parsedRes.candidates[0].content &&
+    parsedRes.candidates[0].content.parts &&
+    parsedRes.candidates[0].content.parts[0] &&
+    parsedRes.candidates[0].content.parts[0].text;
+
+  if (!candidateText) {
+    return jsonResponse({ status: "error", message: "Respons AI kosong atau tidak terbaca." });
+  }
+
+  const cleanJson = candidateText.replace(/^```json\s*/i, "").replace(/```\s*$/, "").trim();
+  const receiptData = JSON.parse(cleanJson);
+  return jsonResponse({ status: "success", data: receiptData });
 }
 
 

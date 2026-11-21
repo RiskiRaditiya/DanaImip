@@ -579,7 +579,7 @@
         <!-- DESKTOP TRANSACTIONS FORMS SECTION (HIDDEN ON MOBILE, COMPACT & SEAMLESS) -->
         <div id="desktop-transactions-container" class="hidden sm:flex flex-col gap-2.5 sm:gap-4">
             <!-- LEDGER TAB SWITCHER (DESKTOP VIEW) -->
-            <div class="grid w-full grid-cols-2 gap-1.5 p-1 bg-neutral-950 border border-neutral-900 rounded-xl shadow-xs ledger-tab-container">
+            <div class="grid w-full grid-cols-1 sm:grid-cols-3 gap-1.5 p-1 bg-neutral-950 border border-neutral-900 rounded-xl shadow-xs ledger-tab-container">
                 <button type="button" onclick="switchLedgerInput('in')" id="ledger-btn-in" class="ledger-tab-btn py-2 sm:py-2.5 px-3 text-center text-xs font-bold rounded-lg transition-all text-neutral-400 hover:text-neutral-200 cursor-pointer flex items-center justify-center gap-1.5 select-none active:scale-[0.98]">
                     <i class="fa-solid fa-arrow-down text-emerald-400 text-xs"></i>
                     <span>Pemasukan<span class="hidden sm:inline"> / Arus Masuk</span></span>
@@ -587,6 +587,10 @@
                 <button type="button" onclick="switchLedgerInput('out')" id="ledger-btn-out" class="ledger-tab-btn py-2 sm:py-2.5 px-3 text-center text-xs font-bold rounded-lg transition-all text-neutral-400 hover:text-neutral-200 cursor-pointer flex items-center justify-center gap-1.5 select-none active:scale-[0.98]">
                     <i class="fa-solid fa-arrow-up text-rose-400 text-xs"></i>
                     <span>Pengeluaran<span class="hidden sm:inline"> / Arus Keluar</span></span>
+                </button>
+                <button type="button" onclick="triggerQuickScan()" class="py-2 sm:py-2.5 px-3 text-center text-xs font-bold rounded-lg transition-all text-rose-300 bg-rose-950/40 border border-rose-500/40 hover:bg-rose-900/50 cursor-pointer flex items-center justify-center gap-1.5 select-none active:scale-[0.98] shadow-xs">
+                    <i class="fa-solid fa-wand-magic-sparkles text-rose-400 text-xs"></i>
+                    <span>Auto-Scan Struk (AI)</span>
                 </button>
             </div>
 
@@ -862,6 +866,30 @@
                     <button type="button" onclick="closeTransactionForm()" class="w-8 h-8 rounded-full bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center text-sm transition-all cursor-pointer" title="Tutup Formulir">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
+                </div>
+
+                <!-- AUTO-SCAN STRUK (AI) ADD-ON -->
+                <div class="bg-gradient-to-r from-rose-950/35 via-neutral-900/70 to-neutral-900 border border-rose-500/25 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 flex items-center justify-center text-xs shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </span>
+                        <div>
+                            <span class="text-[11px] font-bold text-neutral-100 block leading-tight">Auto-Scan Struk / Nota (AI)</span>
+                            <span class="text-[10px] text-neutral-400 block">Foto struk untuk isi otomatis tanggal, nama barang, qty &amp; harga.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" id="btn_reopen_scan_modal" onclick="openScanReceiptModal()" class="hidden items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-200 text-[11px] font-bold cursor-pointer transition-all">
+                            <i class="fa-solid fa-receipt"></i>
+                            <span>Cek Hasil Scan</span>
+                        </button>
+                        <label for="out_scan_receipt_input" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-300 text-[11px] font-bold cursor-pointer transition-all shrink-0 active:scale-[0.98]">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Scan Struk</span>
+                        </label>
+                    </div>
+                    <input type="file" id="out_scan_receipt_input" accept="image/*" onchange="handleScanReceipt(this)" class="hidden">
                 </div>
                 
                 <form id="pengeluaranForm" onsubmit="tambahPengeluaranLokal(event)" class="flex flex-col gap-4">
@@ -1224,6 +1252,14 @@
 
         <!-- Floating Options Menu (Animated Pop-up Above Main FAB) -->
         <div id="fab-speed-dial" class="flex flex-col items-end gap-2.5 mb-3 pointer-events-none transition-all duration-300 transform translate-y-6 scale-90 opacity-0 origin-bottom-right">
+            <!-- Pilihan Auto-Scan Struk -->
+            <button type="button" onclick="handleMobileFabScan()" class="flex items-center gap-3 px-4 py-2.5 rounded-full bg-neutral-900/95 border border-rose-500/50 text-rose-300 shadow-2xl backdrop-blur-md active:scale-95 transition-transform cursor-pointer pointer-events-auto group">
+                <span class="text-xs font-bold font-sans tracking-tight">Auto-Scan Struk (AI)</span>
+                <div class="w-8 h-8 rounded-full bg-rose-500/25 text-rose-300 flex items-center justify-center text-xs shadow-inner border border-rose-500/40 group-hover:bg-rose-500 group-hover:text-neutral-950 transition-colors">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+            </button>
+
             <!-- Pilihan Pemasukan -->
             <button type="button" onclick="handleMobileFabSelect('in')" class="flex items-center gap-3 px-4 py-2.5 rounded-full bg-neutral-900/95 border border-emerald-500/40 text-emerald-300 shadow-2xl backdrop-blur-md active:scale-95 transition-transform cursor-pointer pointer-events-auto group">
                 <span class="text-xs font-bold font-sans tracking-tight">Catat Pemasukan</span>
@@ -1272,7 +1308,7 @@
     </nav>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_APPS_SCRIPT_DEPLOYMENT_ID/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztpGYaWJwa1jYUKFguqUgkIU4sWK0G3sS45W7uuQb176oCleXQGsDbpbuLVzG23pY/exec";
 
         let localTransactions = [];
         let localProkers = [];
@@ -1962,6 +1998,23 @@
             openTransactionForm(type, true);
         };
 
+        window.triggerQuickScan = function() {
+            openTransactionForm('out', false);
+            setTimeout(() => {
+                const scanInput = document.getElementById('out_scan_receipt_input');
+                if (scanInput) scanInput.click();
+            }, 100);
+        };
+
+        window.handleMobileFabScan = function() {
+            toggleMobileFabMenu(false);
+            openTransactionForm('out', true);
+            setTimeout(() => {
+                const scanInput = document.getElementById('out_scan_receipt_input');
+                if (scanInput) scanInput.click();
+            }, 150);
+        };
+
         window.openTransactionForm = function(target, isMobileModal = false) {
             const wrapper = document.getElementById('transaction-forms-wrapper');
             const panelIn = document.getElementById('ledger-panel-in');
@@ -2552,32 +2605,33 @@
                 const isMasuk = tx.jenis === 'Masuk';
                 const sign = isMasuk ? '+' : '-';
                 const valColor = isMasuk ? 'text-emerald-400' : 'text-rose-400';
-                const badgeType = isMasuk ? 'bg-emerald-950/20 text-emerald-400 border-emerald-900/30' : 'bg-rose-950/20 text-rose-400 border-rose-900/30';
+                const accentBorder = isMasuk ? 'border-l-3 border-l-emerald-500/80' : 'border-l-3 border-l-rose-500/80';
                 
                 const penyetorName = isMasuk && tx.user_id ? (membersMap[tx.user_id.toString()] || "") : "";
-                const pengetorText = penyetorName ? `<span class="inline-block text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded uppercase text-neutral-500">Penyetor: ${penyetorName}</span>` : '';
+                const pengetorText = penyetorName ? `<span class="inline-block text-[9.5px] font-mono font-semibold px-2 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-neutral-400">Penyetor: ${penyetorName}</span>` : '';
 
                 const pjName = !isMasuk ? (tx.user_id ? (membersMap[tx.user_id.toString()] || tx.nama_pic_pengeluar || "") : (tx.nama_pic_pengeluar || "")) : "";
-                const picText = pjName ? `<span class="inline-block text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded uppercase text-orange-400">PJ: ${pjName}</span>` : '';
+                const picText = pjName ? `<span class="inline-block text-[9.5px] font-mono font-semibold px-2 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-orange-400">PJ: ${pjName}</span>` : '';
                 
                 const receiptPath = getReceiptPath(tx);
-                const attachmentBtn = receiptPath ? `<button type="button" onclick="openReceiptModal('${receiptPath}')" class="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-2.5 py-1 rounded-lg bg-orange-950/40 text-orange-400 hover:text-white border border-orange-500/25 hover:border-orange-500/50 transition-all duration-300 cursor-pointer active:scale-95 shadow-sm"><i class="fa-solid fa-receipt text-[9px]"></i> Lihat Bukti</button>` : '';
+                const attachmentBtn = receiptPath ? `<button type="button" onclick="openReceiptModal('${receiptPath}')" class="inline-flex items-center gap-1 text-[9.5px] font-mono font-bold px-2.5 py-1 rounded-lg bg-orange-950/40 text-orange-400 hover:text-white border border-orange-500/25 hover:border-orange-500/50 transition-all duration-300 cursor-pointer active:scale-95 shadow-sm"><i class="fa-solid fa-receipt text-[9px]"></i> Lihat Bukti</button>` : '';
                 
                 const prokerIdStr = (tx.proker_id !== undefined && tx.proker_id !== null) ? String(tx.proker_id).trim() : '';
-                const prokerName = (prokerIdStr !== '' && prokerIdStr.toUpperCase() !== 'NULL')
-                    ? (prokersMap[prokerIdStr] || prokerIdStr) 
-                    : "NULL / Tidak Ada";
+                const hasValidProker = (prokerIdStr !== '' && prokerIdStr.toUpperCase() !== 'NULL');
+                const prokerName = hasValidProker ? (prokersMap[prokerIdStr] || prokerIdStr) : "";
+                const prokerTagMobile = hasValidProker ? `<span class="inline-block text-[9.5px] font-sans px-2 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-neutral-300">${prokerName}</span>` : '';
+
                 const divisiStr = (tx.divisi !== undefined && tx.divisi !== null) ? String(tx.divisi).trim() : '';
-                const divisiText = (divisiStr !== '' && divisiStr.toUpperCase() !== 'NULL') 
-                    ? divisiStr 
-                    : "NULL / Tanpa Divisi";
+                const hasValidDivisi = (divisiStr !== '' && divisiStr.toUpperCase() !== 'NULL');
+                const divisiText = hasValidDivisi ? divisiStr : "";
+                const divisiTagMobile = hasValidDivisi ? `<span class="inline-block text-[9.5px] font-sans px-2 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-neutral-300">Divisi: ${divisiText}</span>` : '';
                 
                 const unitStr = (tx.unit !== undefined && tx.unit !== null) ? String(tx.unit).trim() : '';
                 const unitVal = (unitStr !== '' && unitStr.toUpperCase() !== 'NULL') ? capitalizeUnit(unitStr) : '';
                 const hargaSatuanVal = Number(tx.harga_satuan) || 0;
                 const priceText = hargaSatuanVal > 0 ? `@ Rp${hargaSatuanVal.toLocaleString('id-ID')}` : '';
                 const qtyPriceBadge = (unitVal || priceText) 
-                    ? `<span class="inline-block text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded text-neutral-400"><span class="italic font-medium">${unitVal}</span> ${priceText}</span>` 
+                    ? `<span class="inline-block text-[9.5px] font-mono px-2 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-neutral-400"><span class="italic font-medium">${unitVal}</span> ${priceText}</span>` 
                     : '';
 
                 let extraKet = cleanTitle(tx.keterangan);
@@ -2599,63 +2653,59 @@
                             <span class="font-bold text-neutral-200 block text-xs leading-normal">${txTitle}</span>
                             ${noteHtml}
                             <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                <span class="inline-block text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded uppercase text-neutral-400">${prokerName}</span>
-                                <span class="inline-block text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded uppercase text-neutral-400">Divisi: ${divisiText}</span>
-                                <span class="inline-block text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded uppercase text-neutral-400">${tx.kategori || 'Kas'}</span>
+                                ${prokerTagMobile}
+                                ${divisiTagMobile}
+                                <span class="inline-block text-[9.5px] font-mono px-2 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-neutral-300">${tx.kategori || 'Kas'}</span>
                                 ${qtyPriceBadge}
-                                <span class="inline-block text-[8px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase tracking-wider ${badgeType}">${tx.jenis}</span>
                                 ${picText}
                                 ${pengetorText}
                                 ${attachmentBtn}
                             </div>
                         </td>
                         <td class="p-3 text-center align-middle">
-                            ${tx.metode ? `<span class="text-[9px] font-bold text-orange-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-850">${tx.metode}</span>` : `<span class="text-[8.5px] font-mono text-neutral-500 italic bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-850">Belum Diisi</span>`}
+                            ${tx.metode ? `<span class="text-[10px] font-bold text-orange-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">${tx.metode}</span>` : `<span class="text-[9.5px] font-mono text-neutral-500 italic bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">Belum Diisi</span>`}
                         </td>
                         <td class="p-3 text-right font-black text-xs align-middle ${valColor}">${sign}Rp${nominalVal.toLocaleString('id-ID')}</td>
                         <td class="p-3 text-center align-middle">
                             <div class="flex items-center justify-center gap-1.5">
-                                <button onclick="viewDetailTransaksi('${tx.id}')" title="Detail Transaksi" class="text-amber-400 hover:text-amber-300 bg-neutral-900 w-7 h-7 flex items-center justify-center border border-neutral-850 rounded-lg transition-colors cursor-pointer"><i class="fa-solid fa-eye text-[10px]"></i></button>
-                                <button onclick="editTransaksi('${tx.id}')" title="Edit Transaksi" class="text-orange-400 hover:text-orange-300 bg-neutral-900 w-7 h-7 flex items-center justify-center border border-neutral-850 rounded-lg transition-colors cursor-pointer"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                                <button onclick="confirmDelete('${tx.id}')" title="Hapus Transaksi" class="text-rose-400 hover:text-rose-300 bg-neutral-900 w-7 h-7 flex items-center justify-center border border-neutral-850 rounded-lg transition-colors cursor-pointer"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                                <button onclick="viewDetailTransaksi('${tx.id}')" title="Detail Transaksi" class="text-amber-400 hover:text-amber-300 bg-neutral-900 w-7 h-7 flex items-center justify-center border border-neutral-800 rounded-lg transition-colors cursor-pointer"><i class="fa-solid fa-eye text-[10px]"></i></button>
+                                <button onclick="editTransaksi('${tx.id}')" title="Edit Transaksi" class="text-orange-400 hover:text-orange-300 bg-neutral-900 w-7 h-7 flex items-center justify-center border border-neutral-800 rounded-lg transition-colors cursor-pointer"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                                <button onclick="confirmDelete('${tx.id}')" title="Hapus Transaksi" class="text-rose-400 hover:text-rose-300 bg-neutral-900 w-7 h-7 flex items-center justify-center border border-neutral-800 rounded-lg transition-colors cursor-pointer"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                             </div>
                         </td>
                     </tr>
                 `;
 
-                // Accumulate Mobile Card
+                // Accumulate Mobile Card (Rapi & Mirip Publik)
                 mobileHtml += `
-                    <div class="bg-neutral-950 border border-neutral-900 p-3 sm:p-4 rounded-xl flex flex-col gap-2 shadow-xs">
-                        <div class="flex items-center justify-between">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-mono text-neutral-500 font-bold leading-none">${dateFormated}</span>
-                                <span class="text-[7px] font-mono text-neutral-600 mt-0.5 leading-none select-all">${tx.id}</span>
+                    <div class="bg-neutral-950 border border-neutral-900 ${accentBorder} p-3.5 sm:p-4 rounded-2xl flex flex-col gap-2.5 shadow-xs">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 text-[10px]">
+                                    <span class="font-mono text-neutral-400 font-semibold">${dateFormated}</span>
+                                    ${tx.metode ? `<span class="text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-md border bg-neutral-900 text-orange-400 border-neutral-800">${tx.metode}</span>` : ''}
+                                </div>
+                                <h3 class="text-sm font-bold text-neutral-100 leading-snug mt-1">${txTitle}</h3>
+                                ${noteHtml}
                             </div>
-                            <div class="flex items-center gap-1">
-                                ${tx.metode ? `<span class="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border bg-neutral-900 text-orange-400 border-neutral-850">${tx.metode}</span>` : `<span class="text-[8px] font-mono text-neutral-500 italic px-1.5 py-0.5 rounded border bg-neutral-900 border-neutral-850">Belum Diisi</span>`}
-                                <span class="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${badgeType}">${tx.jenis}</span>
-                            </div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[11.5px] sm:text-xs font-bold text-neutral-200 leading-snug">${txTitle}</span>
-                            ${noteHtml}
-                            <div class="flex flex-wrap gap-1">
-                                <span class="inline-block text-[7.5px] sm:text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded uppercase text-neutral-400">${prokerName}</span>
-                                <span class="inline-block text-[7.5px] sm:text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded uppercase text-neutral-400">Divisi: ${divisiText}</span>
-                                <span class="inline-block text-[7.5px] sm:text-[8px] font-mono font-bold px-1.5 py-0.2 bg-neutral-900 border border-neutral-850 rounded uppercase text-neutral-400">${tx.kategori || 'Kas'}</span>
-                                ${qtyPriceBadge}
-                                ${picText}
-                                ${pengetorText}
-                                ${attachmentBtn}
+                            <div class="text-right shrink-0 flex flex-col items-end gap-1">
+                                <span class="text-sm font-extrabold font-mono tracking-tight ${valColor}">${sign}Rp${nominalVal.toLocaleString('id-ID')}</span>
+                                <span class="text-[8.5px] font-mono text-neutral-500 select-all">${tx.id}</span>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between border-t border-neutral-900/60 pt-2 mt-0.5">
-                            <span class="text-xs sm:text-sm font-black tracking-tight ${valColor}">${sign}Rp${nominalVal.toLocaleString('id-ID')}</span>
-                            <div class="flex items-center gap-1">
-                                <button onclick="viewDetailTransaksi('${tx.id}')" class="text-[9px] font-mono font-bold text-amber-400 hover:text-amber-300 bg-neutral-900 px-2 py-1 border border-neutral-850 rounded-md cursor-pointer inline-flex items-center gap-1"><i class="fa-solid fa-eye text-[8px]"></i> Detail</button>
-                                <button onclick="editTransaksi('${tx.id}')" class="text-[9px] font-mono font-bold text-orange-400 hover:text-orange-300 bg-neutral-900 px-2 py-1 border border-neutral-850 rounded-md cursor-pointer inline-flex items-center gap-1"><i class="fa-solid fa-pen text-[8px]"></i> Edit</button>
-                                <button onclick="confirmDelete('${tx.id}')" class="text-[9px] font-mono font-bold text-rose-400 hover:text-rose-300 bg-neutral-900 px-2 py-1 border border-neutral-850 rounded-md cursor-pointer inline-flex items-center gap-1"><i class="fa-solid fa-trash-can text-[8px]"></i> Hapus</button>
-                            </div>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            ${prokerTagMobile}
+                            ${divisiTagMobile}
+                            <span class="inline-block text-[9.5px] font-mono px-2 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-neutral-300">${tx.kategori || 'Kas'}</span>
+                            ${qtyPriceBadge}
+                            ${picText}
+                            ${pengetorText}
+                            ${attachmentBtn}
+                        </div>
+                        <div class="flex items-center justify-end gap-1.5 border-t border-neutral-800/80 pt-2.5 mt-0.5">
+                            <button onclick="viewDetailTransaksi('${tx.id}')" class="text-[10px] font-mono font-bold text-amber-400 hover:text-amber-300 bg-neutral-900 px-2.5 py-1 border border-neutral-800 rounded-lg cursor-pointer inline-flex items-center gap-1"><i class="fa-solid fa-eye text-[9px]"></i> Detail</button>
+                            <button onclick="editTransaksi('${tx.id}')" class="text-[10px] font-mono font-bold text-orange-400 hover:text-orange-300 bg-neutral-900 px-2.5 py-1 border border-neutral-800 rounded-lg cursor-pointer inline-flex items-center gap-1"><i class="fa-solid fa-pen text-[9px]"></i> Edit</button>
+                            <button onclick="confirmDelete('${tx.id}')" class="text-[10px] font-mono font-bold text-rose-400 hover:text-rose-300 bg-neutral-900 px-2.5 py-1 border border-neutral-800 rounded-lg cursor-pointer inline-flex items-center gap-1"><i class="fa-solid fa-trash-can text-[9px]"></i> Hapus</button>
                         </div>
                     </div>
                 `;
@@ -3762,5 +3812,406 @@
             </div>
         </div>
     </div>
+    <!-- MODAL CEK STRUK (AI RECEIPT SCANNER) -->
+    <div id="receiptScanModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-neutral-950/85 backdrop-blur-md">
+        <div class="bg-neutral-900 border border-neutral-800 max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+            <div class="flex items-center justify-between border-b border-neutral-800 px-4 py-3 bg-neutral-950/60">
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-receipt"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-bold text-neutral-100 leading-tight">Cek Struk Hasil Scan</h3>
+                        <span class="text-[10px] text-neutral-400">Bandingkan dengan foto asli sebelum dimasukkan ke form.</span>
+                    </div>
+                </div>
+                <button type="button" onclick="closeScanReceiptModal()" class="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-400 hover:text-white cursor-pointer">✕</button>
+            </div>
+
+            <div class="p-3 sm:p-4 overflow-y-auto space-y-3.5 flex-1">
+                <!-- Preview Struk Asli -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-2 flex flex-col items-center">
+                    <span class="text-[9px] font-mono uppercase tracking-wider text-neutral-500 mb-1.5">Foto Struk Asli (Scroll / Geser untuk Bandingkan)</span>
+                    <div class="w-full max-h-44 overflow-auto flex justify-center rounded-lg bg-black/40 p-1">
+                        <img id="scan_receipt_preview_img" src="" alt="Struk Asli" class="max-w-full object-contain rounded">
+                    </div>
+                </div>
+
+                <!-- Toko & Tanggal -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold">Nama Toko / Merchant</label>
+                        <input type="text" id="scan_toko_input" placeholder="Nama toko..." class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-rose-500">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold">Tanggal Struk</label>
+                        <input type="date" id="scan_tanggal_input" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-rose-500 font-mono">
+                    </div>
+                </div>
+
+                <!-- Daftar Item Terdeteksi -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-mono uppercase font-bold text-neutral-300">Item Terdeteksi</span>
+                        <button type="button" onclick="addScanItemRow()" class="text-[10px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/50 border border-rose-800/40 px-2.5 py-1 rounded-lg cursor-pointer">
+                            + Tambah Item
+                        </button>
+                    </div>
+                    <div id="scan_items_container" class="space-y-2"></div>
+                </div>
+
+                <!-- Total -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 flex items-center justify-between">
+                    <span class="text-[10px] font-mono uppercase font-bold text-neutral-400">Total Terhitung</span>
+                    <span id="scan_grand_total" class="text-sm sm:text-base font-black text-rose-300 font-mono">Rp0</span>
+                </div>
+            </div>
+
+            <div class="border-t border-neutral-800 p-3 sm:p-4 bg-neutral-950/70 flex flex-col sm:flex-row gap-2">
+                <button type="button" onclick="applyScanToForm()" class="flex-1 py-2.5 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-xs font-bold cursor-pointer transition-all">
+                    Isi ke Form (1 Item)
+                </button>
+                <button type="button" onclick="saveAllScannedItems()" class="flex-1 py-2.5 px-3 rounded-xl bg-rose-500 hover:bg-rose-400 text-neutral-950 text-xs font-bold cursor-pointer transition-all">
+                    Simpan Semua Item Sekaligus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScannedData = { toko: '', tanggal: '', metode: '', items: [], imageBase64: '' };
+
+        function closeScanReceiptModal() {
+            const modal = document.getElementById('receiptScanModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function openScanReceiptModal() {
+            const modal = document.getElementById('receiptScanModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function attachScannedImageToOutForm(base64Str, fileName) {
+            if (!base64Str) return;
+            pengeluaranImageBase64 = base64Str;
+            const prevImg = document.getElementById('out_image_preview');
+            const prevBox = document.getElementById('out_preview_container');
+            const fileDisp = document.getElementById('out_file_name_display');
+            const redInfo = document.getElementById('out_image_reduction_info');
+            if (prevImg) prevImg.src = base64Str;
+            if (prevBox) prevBox.classList.remove('hidden');
+            if (fileDisp) fileDisp.innerText = fileName || 'struk-scan.jpg';
+            if (redInfo) redInfo.innerText = 'Terlampir otomatis dari hasil Scan Struk';
+        }
+
+        async function handleScanReceipt(input) {
+            if (!input || !input.files || !input.files[0]) return;
+            const file = input.files[0];
+
+            if (!GOOGLE_SCRIPT_URL) {
+                Swal.fire({ icon: 'warning', title: 'Backend Belum Terhubung', text: 'GOOGLE_SCRIPT_URL tidak ditemukan.' });
+                input.value = '';
+                return;
+            }
+
+            Swal.fire({
+                title: 'Memindai Struk...',
+                text: 'AI sedang membaca nama barang, jumlah & harga.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const compressedBase64 = await compressImageFile(file);
+                attachScannedImageToOutForm(compressedBase64, file.name);
+
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'scan_receipt',
+                        admin_token: sessionStorage.getItem('adminAuthToken') || '',
+                        image_base64: compressedBase64,
+                        mime_type: file.type || 'image/jpeg'
+                    })
+                });
+
+                const json = await res.json();
+                Swal.close();
+
+                if (!json || json.status !== 'success' || !json.data) {
+                    throw new Error((json && json.message) ? json.message : 'Gagal membaca struk.');
+                }
+
+                const d = json.data;
+                currentScannedData = {
+                    toko: d.toko || '',
+                    tanggal: d.tanggal || '',
+                    metode: d.metode || '',
+                    items: Array.isArray(d.items) && d.items.length > 0 ? d.items : [{ nama: '', qty: 1, satuan: '', harga_satuan: 0, total: 0 }],
+                    imageBase64: compressedBase64
+                };
+
+                // Jika hanya 1 item & user ingin cepat, tetap buka modal Cek Struk agar bisa diverifikasi
+                document.getElementById('scan_receipt_preview_img').src = compressedBase64;
+                document.getElementById('scan_toko_input').value = currentScannedData.toko;
+                document.getElementById('scan_tanggal_input').value = currentScannedData.tanggal || document.getElementById('out_tanggal').value;
+                renderScanItems();
+                const reopenBtn = document.getElementById('btn_reopen_scan_modal');
+                if (reopenBtn) {
+                    reopenBtn.classList.remove('hidden');
+                    reopenBtn.classList.add('inline-flex');
+                }
+                openScanReceiptModal();
+            } catch (err) {
+                Swal.close();
+                console.error('Scan Receipt Error:', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Scan Struk',
+                    text: err.message || err.toString()
+                });
+            } finally {
+                input.value = '';
+            }
+        }
+
+        function renderScanItems() {
+            const container = document.getElementById('scan_items_container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            currentScannedData.items.forEach((item, idx) => {
+                const qty = Number(item.qty) || 1;
+                const harga = Number(item.harga_satuan) || 0;
+                const total = qty * harga;
+                item.total = total;
+
+                const row = document.createElement('div');
+                row.className = 'bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 space-y-2';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <input type="text" value="${(item.nama || '').replace(/"/g, '&quot;')}" onchange="updateScanItem(${idx}, 'nama', this.value)" placeholder="Nama item..." class="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
+                        <button type="button" onclick="removeScanItemRow(${idx})" class="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-rose-400 hover:bg-rose-950/60 text-xs cursor-pointer" title="Hapus item">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-500 block">Jml</label>
+                            <input type="number" min="1" value="${qty}" oninput="updateScanItem(${idx}, 'qty', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-neutral-200 font-mono">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-500 block">Satuan</label>
+                            <input type="text" value="${(item.satuan || '').replace(/"/g, '&quot;')}" onchange="updateScanItem(${idx}, 'satuan', this.value)" placeholder="Pcs" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-neutral-200">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-500 block">Harga Satuan</label>
+                            <input type="number" min="0" value="${harga}" oninput="updateScanItem(${idx}, 'harga_satuan', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-neutral-200 font-mono">
+                        </div>
+                    </div>
+                    <div class="flex justify-end text-[11px] font-mono text-rose-300 font-bold">
+                        Subtotal: Rp${total.toLocaleString('id-ID')}
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+
+            updateScanGrandTotal();
+        }
+
+        function updateScanItem(idx, field, value) {
+            if (!currentScannedData.items[idx]) return;
+            if (field === 'qty' || field === 'harga_satuan') {
+                currentScannedData.items[idx][field] = parseFloat(value) || 0;
+            } else {
+                currentScannedData.items[idx][field] = value;
+            }
+            const qty = Number(currentScannedData.items[idx].qty) || 1;
+            const harga = Number(currentScannedData.items[idx].harga_satuan) || 0;
+            currentScannedData.items[idx].total = qty * harga;
+            renderScanItems();
+        }
+
+        function addScanItemRow() {
+            currentScannedData.items.push({ nama: '', qty: 1, satuan: 'Pcs', harga_satuan: 0, total: 0 });
+            renderScanItems();
+        }
+
+        function removeScanItemRow(idx) {
+            if (currentScannedData.items.length <= 1) return;
+            currentScannedData.items.splice(idx, 1);
+            renderScanItems();
+        }
+
+        function updateScanGrandTotal() {
+            const sum = currentScannedData.items.reduce((acc, it) => acc + ((Number(it.qty) || 1) * (Number(it.harga_satuan) || 0)), 0);
+            const el = document.getElementById('scan_grand_total');
+            if (el) el.innerText = 'Rp' + sum.toLocaleString('id-ID');
+        }
+
+        function setSelectSatuanValue(satuanRaw) {
+            const sel = document.getElementById('out_satuan_select');
+            const custom = document.getElementById('out_satuan_custom');
+            if (!sel) return;
+            const s = (satuanRaw || '').trim();
+            if (!s) {
+                sel.value = 'NULL';
+                if (custom) custom.classList.add('hidden');
+                return;
+            }
+            const matchOpt = Array.from(sel.options).find(o => o.value.toLowerCase() === s.toLowerCase());
+            if (matchOpt) {
+                sel.value = matchOpt.value;
+                if (custom) custom.classList.add('hidden');
+            } else {
+                sel.value = 'custom';
+                if (custom) {
+                    custom.classList.remove('hidden');
+                    custom.value = s;
+                }
+            }
+        }
+
+        function applyScanToForm() {
+            const tgl = document.getElementById('scan_tanggal_input').value;
+            const toko = document.getElementById('scan_toko_input').value.trim();
+            if (tgl) document.getElementById('out_tanggal').value = tgl;
+
+            if (currentScannedData.metode) {
+                const mSel = document.getElementById('out_metode');
+                if (mSel && Array.from(mSel.options).some(o => o.value === currentScannedData.metode)) {
+                    mSel.value = currentScannedData.metode;
+                }
+            }
+
+            const items = currentScannedData.items.filter(it => (it.nama || '').trim() || Number(it.harga_satuan) > 0);
+            if (items.length === 1) {
+                const it = items[0];
+                document.getElementById('exp_nama_barang').value = it.nama || '';
+                document.getElementById('exp_jumlah_unit').value = Number(it.qty) || 1;
+                setSelectSatuanValue(it.satuan || '');
+                const priceEl = document.getElementById('exp_harga_satuan');
+                priceEl.value = String(Math.round(Number(it.harga_satuan) || 0));
+                if (typeof formatRibuanInstan === 'function') formatRibuanInstan(priceEl);
+            } else if (items.length > 1) {
+                const grand = items.reduce((a, b) => a + ((Number(b.qty) || 1) * (Number(b.harga_satuan) || 0)), 0);
+                document.getElementById('exp_nama_barang').value = (toko ? toko + ': ' : '') + items.map(i => i.nama).filter(Boolean).join(', ');
+                document.getElementById('exp_jumlah_unit').value = 1;
+                setSelectSatuanValue('NULL');
+                const priceEl = document.getElementById('exp_harga_satuan');
+                priceEl.value = String(Math.round(grand));
+                if (typeof formatRibuanInstan === 'function') formatRibuanInstan(priceEl);
+            }
+
+            if (toko && !document.getElementById('out_catatan_opsional').value.trim()) {
+                document.getElementById('out_catatan_opsional').value = 'Struk: ' + toko;
+            }
+
+            if (typeof calculateExpTotal === 'function') calculateExpTotal();
+            closeScanReceiptModal();
+        }
+
+        async function saveAllScannedItems() {
+            const divisi = getDivisiValue('out');
+            const cat = getKategoriValue('out');
+            const method = document.getElementById('out_metode').value || currentScannedData.metode || '';
+            const prokerId = document.getElementById('out_proker_id').value || 'NULL';
+
+            const rawUserId = document.getElementById('out_user_id').value;
+            const searchVal = (document.getElementById('out_user_search') ? document.getElementById('out_user_search').value.trim() : '');
+            let userId = rawUserId;
+            if (!userId && searchVal && typeof localAnggota !== 'undefined') {
+                const valLower = searchVal.toLowerCase();
+                const match = localAnggota.find(m => `${m.name} (${m.divisi})`.toLowerCase() === valLower || m.name.toLowerCase() === valLower);
+                if (match) {
+                    userId = match.id;
+                    document.getElementById('out_user_id').value = match.id;
+                }
+            }
+
+            if (!cat || !method || !userId) {
+                closeScanReceiptModal();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Lengkapi Data Form Dulu',
+                    text: 'Pilih Kategori, Metode Pembayaran, dan Penanggung Jawab (PJ) di form Pengeluaran terlebih dahulu, lalu klik Simpan Semua.'
+                });
+                return;
+            }
+
+            const tgl = document.getElementById('scan_tanggal_input').value || document.getElementById('out_tanggal').value;
+            const toko = document.getElementById('scan_toko_input').value.trim();
+            const picName = userId && typeof membersMap !== 'undefined' ? (membersMap[userId.toString()] || '') : '';
+            const items = currentScannedData.items.filter(it => (it.nama || '').trim() && Number(it.harga_satuan) > 0);
+
+            if (items.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Item Kosong', text: 'Minimal harus ada 1 item valid.' });
+                return;
+            }
+
+            Swal.fire({
+                title: `Menyimpan ${items.length} Item...`,
+                text: 'Mohon tunggu sebentar.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                for (let i = 0; i < items.length; i++) {
+                    const it = items[i];
+                    const qty = Number(it.qty) || 1;
+                    const price = Math.round(Number(it.harga_satuan) || 0);
+                    const total = qty * price;
+                    const sat = (it.satuan || '').trim();
+                    const unitVal = sat ? `${qty} ${sat}` : (qty > 1 ? String(qty) : 'NULL');
+
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'insert_transaction',
+                            admin_token: sessionStorage.getItem('adminAuthToken') || '',
+                            tanggal: tgl,
+                            divisi: divisi,
+                            uraian: it.nama.trim(),
+                            keterangan: toko ? ('Struk: ' + toko) : '',
+                            unit: unitVal,
+                            harga_satuan: price,
+                            jumlah: total,
+                            nominal: total,
+                            jenis: 'Keluar',
+                            metode: method,
+                            kategori: cat,
+                            proker_id: prokerId,
+                            user_id: userId,
+                            nama_pic_pengeluar: picName,
+                            bukti: i === 0 ? (currentScannedData.imageBase64 || '') : '',
+                            status_reimburse: 'Tidak Perlu'
+                        })
+                    });
+                }
+
+                Swal.close();
+                closeScanReceiptModal();
+                Swal.fire({ icon: 'success', title: `${items.length} Item Pengeluaran Disimpan!`, showConfirmButton: false, timer: 1400 });
+                document.getElementById('pengeluaranForm').reset();
+                resetPengeluaranImage();
+                expTotal.innerText = 'Rp0';
+                closeTransactionForm();
+                fetchInitialData(true);
+            } catch (err) {
+                Swal.close();
+                Swal.fire({ icon: 'error', title: 'Gagal Menyimpan', text: err.toString() });
+            }
+        }
+    </script>
 </body>
 </html>
