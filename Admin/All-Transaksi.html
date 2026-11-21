@@ -3845,22 +3845,16 @@
                     </div>
                 </div>
 
-                <!-- 2. Info Struk & Pengaturan Standar Pengeluaran (Berlaku ke Semua Item, Bisa Di-custom per Item) -->
+                <!-- 2. Pengaturan Standar Pengeluaran Struk (Berlaku ke Semua Item) -->
                 <div class="bg-neutral-950/90 border border-neutral-800/90 rounded-2xl p-3 sm:p-3.5 space-y-3">
                     <div class="flex items-center justify-between border-b border-neutral-800/80 pb-2">
                         <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-rose-400">Standar Pengeluaran Struk Ini</span>
-                        <span class="text-[9.5px] text-neutral-400">Otomatis diterapkan ke semua item (bisa diubah per item)</span>
+                        <span class="text-[9.5px] text-neutral-400">Berlaku untuk seluruh barang di bawah</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div>
-                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Nama Toko / Merchant</label>
-                            <input type="text" id="scan_toko_input" oninput="currentScannedData.toko = this.value" placeholder="Contoh: O! Save, Indomaret..." class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Tanggal Pengeluaran *</label>
-                            <input type="date" id="scan_tanggal_input" onchange="applyDefaultToAllScanItems('tanggal', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500 font-mono">
-                        </div>
+                    <div>
+                        <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Tanggal Pengeluaran *</label>
+                        <input type="date" id="scan_tanggal_input" onchange="applyDefaultToAllScanItems('tanggal', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500 font-mono">
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -3975,28 +3969,6 @@
             { value: 'Porsi', label: 'Porsi' },
             { value: 'Kegiatan', label: 'Kegiatan' },
             { value: 'Day', label: 'Day' }
-        ];
-
-        const DIVISI_OPTIONS_LIST = [
-            { value: 'NULL', label: '- Tanpa Divisi (Umum) -' },
-            { value: 'Acara', label: 'Acara' },
-            { value: 'Sekretaris', label: 'Sekretaris' },
-            { value: 'Bendahara', label: 'Bendahara' },
-            { value: 'Konsumsi', label: 'Konsumsi' },
-            { value: 'Logistik', label: 'Logistik' },
-            { value: 'Artistik', label: 'Artistik' },
-            { value: 'Korlap', label: 'Korlap' },
-            { value: 'Sponsor', label: 'Sponsor' },
-            { value: 'HPD', label: 'HPD' }
-        ];
-
-        const KATEGORI_OPTIONS_LIST = [
-            { value: '', label: 'Pilih Kategori...' },
-            { value: 'Dana Operasional 2026', label: 'Dana Operasional 2026' },
-            { value: 'Dana Operasional', label: 'Dana Operasional' },
-            { value: 'Donasi', label: 'Donasi' },
-            { value: 'Kas', label: 'Kas' },
-            { value: 'Danusan', label: 'Danusan' }
         ];
 
         function closeScanReceiptModal() {
@@ -4169,7 +4141,6 @@
                 const d = json.data;
                 const defaultTgl = d.tanggal || document.getElementById('out_tanggal').value || new Date().toISOString().substring(0, 10);
                 document.getElementById('scan_receipt_preview_img').src = compressedBase64;
-                document.getElementById('scan_toko_input').value = d.toko || '';
                 document.getElementById('scan_tanggal_input').value = defaultTgl;
 
                 syncScanModalDefaultsFromForm();
@@ -4241,9 +4212,6 @@
             if (!container) return;
             container.innerHTML = '';
 
-            const prokerSelect = document.getElementById('scan_default_proker');
-            const prokerOptionsHtml = prokerSelect ? prokerSelect.innerHTML : '<option value="NULL">- Tanpa Proker (Umum) -</option>';
-
             currentScannedData.items.forEach((item, idx) => {
                 const qty = Number(item.qty) || 1;
                 const harga = Math.round(Number(item.harga_satuan) || 0);
@@ -4257,16 +4225,14 @@
 
                 if (!isEditing) {
                     // TAMPILAN RINGKAS (PERSIS GAMBAR SPLITBILL 11.42.55 AM (1))
-                    const divBadge = (item.divisi && item.divisi !== 'NULL') ? item.divisi : 'Umum';
-                    const katBadge = item.kategori || 'Belum pilih kategori';
+                    const notePreview = (item.keterangan || '').trim();
                     wrapper.innerHTML = `
                         <div class="flex items-center justify-between gap-3 group cursor-pointer" onclick="toggleEditScanItem(${idx})">
                             <div class="min-w-0 flex-1">
                                 <div class="text-xs sm:text-sm font-bold text-neutral-100 truncate">${escapeHtmlAttr(item.nama || '(Tanpa Nama Barang)')}</div>
                                 <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
                                     <span class="text-[11px] font-mono text-neutral-400">${qty}${satuanLabel ? ' ' + escapeHtmlAttr(satuanLabel) : ''} × Rp${harga.toLocaleString('id-ID')}</span>
-                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 font-mono">${escapeHtmlAttr(divBadge)}</span>
-                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-800/40 text-rose-300 font-mono">${escapeHtmlAttr(katBadge)}</span>
+                                    ${notePreview ? `<span class="text-[10px] text-neutral-500 truncate max-w-[180px]">• ${escapeHtmlAttr(notePreview)}</span>` : ''}
                                 </div>
                             </div>
                             <div class="flex items-center gap-2.5 shrink-0">
@@ -4278,15 +4244,9 @@
                         </div>
                     `;
                 } else {
-                    // TAMPILAN EDIT LENGKAP (PERSIS GAMBAR SPLITBILL 11.42.54 AM (1) + STANDAR PENGELUARAN KITA)
+                    // TAMPILAN EDIT PENSIL (RINGKAS: NAMA, JML, SATUAN, HARGA, TOTAL, CATATAN TAMBAHAN)
                     const isCustomSat = item.satuan && item.satuan !== 'NULL' && !SATUAN_OPTIONS_LIST.some(o => o.value.toLowerCase() === item.satuan.toLowerCase());
                     const selectedSat = isCustomSat ? 'custom' : (SATUAN_OPTIONS_LIST.find(o => o.value.toLowerCase() === (item.satuan || 'NULL').toLowerCase())?.value || 'NULL');
-
-                    const isCustomDiv = item.divisi && item.divisi !== 'NULL' && !DIVISI_OPTIONS_LIST.some(o => o.value === item.divisi);
-                    const selectedDiv = isCustomDiv ? 'custom' : (item.divisi || 'NULL');
-
-                    const isCustomKat = item.kategori && !KATEGORI_OPTIONS_LIST.some(o => o.value === item.kategori);
-                    const selectedKat = isCustomKat ? 'custom' : (item.kategori || '');
 
                     wrapper.innerHTML = `
                         <div class="bg-rose-950/20 border border-rose-500/40 rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-lg">
@@ -4311,7 +4271,7 @@
                                     <input type="text" id="scan_item_satuan_custom_${idx}" value="${isCustomSat ? escapeHtmlAttr(item.satuan) : ''}" oninput="updateScanItemField(${idx}, 'satuan', this.value, false)" placeholder="Satuan..." class="${selectedSat === 'custom' ? '' : 'hidden'} mt-1.5 w-full bg-neutral-900 border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-neutral-100">
                                 </div>
                                 <div class="col-span-5">
-                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Harga Satuan (Rp)</label>
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Harga Barang (Rp)</label>
                                     <input type="number" min="0" value="${harga}" oninput="updateScanItemField(${idx}, 'harga_satuan', this.value, false)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-neutral-100 focus:outline-none focus:border-rose-400">
                                 </div>
                             </div>
@@ -4324,50 +4284,14 @@
                                 </div>
                             </div>
 
-                            <!-- Standar Input Pengeluaran per Item (Divisi, Kategori, Metode, PJ, Proker, Catatan) -->
-                            <div class="pt-2 border-t border-neutral-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                <div>
-                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Divisi Item Ini</label>
-                                    <select onchange="handleScanItemCustomSelect(${idx}, 'divisi', this.value)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
-                                        ${DIVISI_OPTIONS_LIST.map(o => `<option value="${o.value}" ${o.value === selectedDiv ? 'selected' : ''}>${o.label}</option>`).join('')}
-                                        <option value="custom" ${selectedDiv === 'custom' ? 'selected' : ''}>+ Tulis Sendiri...</option>
-                                    </select>
-                                    <input type="text" id="scan_item_divisi_custom_${idx}" value="${isCustomDiv ? escapeHtmlAttr(item.divisi) : ''}" oninput="updateScanItemField(${idx}, 'divisi', this.value, false, true)" placeholder="Ketik Divisi..." class="${selectedDiv === 'custom' ? '' : 'hidden'} mt-1.5 w-full bg-neutral-900 border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-neutral-100">
-                                </div>
-                                <div>
-                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Kategori Item Ini</label>
-                                    <select onchange="handleScanItemCustomSelect(${idx}, 'kategori', this.value)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
-                                        ${KATEGORI_OPTIONS_LIST.map(o => `<option value="${o.value}" ${o.value === selectedKat ? 'selected' : ''}>${o.label}</option>`).join('')}
-                                        <option value="custom" ${selectedKat === 'custom' ? 'selected' : ''}>+ Tulis Sendiri...</option>
-                                    </select>
-                                    <input type="text" id="scan_item_kategori_custom_${idx}" value="${isCustomKat ? escapeHtmlAttr(item.kategori) : ''}" oninput="updateScanItemField(${idx}, 'kategori', this.value, false, true)" placeholder="Ketik Kategori..." class="${selectedKat === 'custom' ? '' : 'hidden'} mt-1.5 w-full bg-neutral-900 border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-neutral-100">
-                                </div>
-                                <div>
-                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Metode Pembayaran</label>
-                                    <select onchange="updateScanItemField(${idx}, 'metode', this.value, false, true)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
-                                        <option value="" ${!item.metode ? 'selected' : ''}>-- Pilih Metode --</option>
-                                        <option value="Tunai" ${item.metode === 'Tunai' ? 'selected' : ''}>Uang Tunai (Cash)</option>
-                                        <option value="GoPay" ${item.metode === 'GoPay' ? 'selected' : ''}>E-Wallet GoPay</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Penanggung Jawab (PJ)</label>
-                                    <input type="text" list="out_members_list" value="${escapeHtmlAttr(item.pj_search || '')}" oninput="updateScanItemField(${idx}, 'pj_search', this.value, false, true)" placeholder="Cari anggota PJ..." class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
-                                </div>
-                                <div>
-                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Hubungkan Ke Proker</label>
-                                    <select id="scan_item_proker_${idx}" onchange="updateScanItemField(${idx}, 'proker_id', this.value, false, true)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
-                                        ${prokerOptionsHtml}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Catatan Tambahan (Opsional)</label>
-                                    <input type="text" value="${escapeHtmlAttr(item.keterangan || '')}" oninput="updateScanItemField(${idx}, 'keterangan', this.value, false, true)" placeholder="Keterangan tambahan item ini..." class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
-                                </div>
+                            <!-- Catatan Tambahan (Opsional) -->
+                            <div>
+                                <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Catatan Tambahan (Opsional)</label>
+                                <input type="text" value="${escapeHtmlAttr(item.keterangan || '')}" oninput="updateScanItemField(${idx}, 'keterangan', this.value, false, true)" placeholder="Keterangan tambahan barang ini..." class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-400">
                             </div>
 
                             <!-- Tombol Hapus (Kiri) & Selesai (Kanan) seperti SplitBill 11.42.54 AM (1) -->
-                            <div class="flex items-center justify-between pt-2">
+                            <div class="flex items-center justify-between pt-1">
                                 <button type="button" onclick="removeScanItemRow(${idx})" class="w-8 h-8 rounded-xl bg-neutral-900 hover:bg-rose-950/70 border border-neutral-800 hover:border-rose-700 text-rose-400 flex items-center justify-center text-xs cursor-pointer transition-colors" title="Hapus Item">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
@@ -4380,11 +4304,6 @@
                 }
 
                 container.appendChild(wrapper);
-
-                if (isEditing) {
-                    const prokerEl = document.getElementById(`scan_item_proker_${idx}`);
-                    if (prokerEl) prokerEl.value = item.proker_id || 'NULL';
-                }
             });
 
             updateScanGrandTotal();
@@ -4400,19 +4319,6 @@
             } else {
                 if (cust) cust.classList.add('hidden');
                 updateScanItemField(idx, 'satuan', val, false);
-            }
-        }
-
-        function handleScanItemCustomSelect(idx, field, val) {
-            const cust = document.getElementById(`scan_item_${field}_custom_${idx}`);
-            if (val === 'custom') {
-                if (cust) {
-                    cust.classList.remove('hidden');
-                    cust.focus();
-                }
-            } else {
-                if (cust) cust.classList.add('hidden');
-                updateScanItemField(idx, field, val, false, true);
             }
         }
 
@@ -4522,7 +4428,6 @@
 
         function applyScanToForm() {
             const defaults = getScanDefaultValues();
-            const toko = document.getElementById('scan_toko_input').value.trim();
             if (defaults.tanggal) document.getElementById('out_tanggal').value = defaults.tanggal;
 
             if (defaults.metode) {
@@ -4549,18 +4454,17 @@
                 const priceEl = document.getElementById('exp_harga_satuan');
                 priceEl.value = String(Math.round(Number(it.harga_satuan) || 0));
                 if (typeof formatRibuanInstan === 'function') formatRibuanInstan(priceEl);
+                if ((it.keterangan || '').trim()) {
+                    document.getElementById('out_catatan_opsional').value = it.keterangan.trim();
+                }
             } else if (items.length > 1) {
                 const grand = items.reduce((a, b) => a + ((Number(b.qty) || 1) * (Number(b.harga_satuan) || 0)), 0);
-                document.getElementById('exp_nama_barang').value = (toko ? toko + ': ' : '') + items.map(i => i.nama).filter(Boolean).join(', ');
+                document.getElementById('exp_nama_barang').value = items.map(i => i.nama).filter(Boolean).join(', ');
                 document.getElementById('exp_jumlah_unit').value = 1;
                 setSelectSatuanValue('NULL');
                 const priceEl = document.getElementById('exp_harga_satuan');
                 priceEl.value = String(Math.round(grand));
                 if (typeof formatRibuanInstan === 'function') formatRibuanInstan(priceEl);
-            }
-
-            if (toko && !document.getElementById('out_catatan_opsional').value.trim()) {
-                document.getElementById('out_catatan_opsional').value = 'Struk: ' + toko;
             }
 
             if (typeof calculateExpTotal === 'function') calculateExpTotal();
@@ -4569,34 +4473,28 @@
 
         async function saveAllScannedItems() {
             const defaults = getScanDefaultValues();
-            const toko = document.getElementById('scan_toko_input').value.trim();
             const validItems = currentScannedData.items.filter(it => (it.nama || '').trim() && Number(it.harga_satuan) > 0);
 
             if (validItems.length === 0) {
-                Swal.fire({ icon: 'warning', title: 'Barang Belum Lengkap', text: 'Pastikan minimal ada 1 barang dengan nama dan harga satuan lebih dari 0.' });
+                Swal.fire({ icon: 'warning', title: 'Barang Belum Lengkap', text: 'Pastikan minimal ada 1 barang dengan nama dan harga barang lebih dari 0.' });
                 return;
             }
 
-            // Validasi setiap item memiliki Kategori, Metode, dan Penanggung Jawab (baik dari default struk maupun custom per item)
-            for (let i = 0; i < validItems.length; i++) {
-                const it = validItems[i];
-                const kat = (it.kategori || defaults.kategori || '').trim();
-                const met = (it.metode || defaults.metode || '').trim();
-                const pjStr = (it.pj_search || defaults.pj_search || '').trim();
-                const member = resolveMemberFromSearch(pjStr);
+            const kat = (defaults.kategori || '').trim();
+            const met = (defaults.metode || '').trim();
+            const member = resolveMemberFromSearch(defaults.pj_search || '');
 
-                if (!kat) {
-                    Swal.fire({ icon: 'warning', title: 'Kategori Wajib Diisi', text: `Pilih Kategori Default di atas (atau pada item "${it.nama}") terlebih dahulu.` });
-                    return;
-                }
-                if (!met) {
-                    Swal.fire({ icon: 'warning', title: 'Metode Pembayaran Wajib Diisi', text: `Pilih Metode Pembayaran (Tunai / GoPay) terlebih dahulu.` });
-                    return;
-                }
-                if (!member) {
-                    Swal.fire({ icon: 'warning', title: 'Penanggung Jawab (PJ) Wajib Valid', text: `Pilih nama anggota Penanggung Jawab dari daftar yang tersedia untuk item "${it.nama}".` });
-                    return;
-                }
+            if (!kat) {
+                Swal.fire({ icon: 'warning', title: 'Kategori Wajib Diisi', text: 'Pilih Kategori di bagian atas terlebih dahulu.' });
+                return;
+            }
+            if (!met) {
+                Swal.fire({ icon: 'warning', title: 'Metode Pembayaran Wajib Diisi', text: 'Pilih Metode Pembayaran (Tunai / GoPay) di bagian atas terlebih dahulu.' });
+                return;
+            }
+            if (!member) {
+                Swal.fire({ icon: 'warning', title: 'Penanggung Jawab (PJ) Wajib Valid', text: 'Pilih nama anggota Penanggung Jawab dari daftar yang tersedia di bagian atas.' });
+                return;
             }
 
             Swal.fire({
@@ -4607,6 +4505,12 @@
             });
 
             try {
+                const tgl = defaults.tanggal || new Date().toISOString().substring(0, 10);
+                const divisi = defaults.divisi || 'NULL';
+                const prokerId = defaults.proker_id || 'NULL';
+                const userId = member.id;
+                const picName = (userId && typeof membersMap !== 'undefined') ? (membersMap[userId.toString()] || member.name || '') : (member.name || '');
+
                 for (let i = 0; i < validItems.length; i++) {
                     const it = validItems[i];
                     const qty = Number(it.qty) || 1;
@@ -4614,19 +4518,7 @@
                     const total = qty * price;
                     const sat = (it.satuan && it.satuan !== 'NULL') ? it.satuan.trim() : '';
                     const unitVal = sat ? `${qty} ${sat}` : (qty > 1 ? String(qty) : 'NULL');
-
-                    const tgl = it.tanggal || defaults.tanggal || new Date().toISOString().substring(0, 10);
-                    const divisi = it.divisi || defaults.divisi || 'NULL';
-                    const kategori = (it.kategori || defaults.kategori).trim();
-                    const metode = (it.metode || defaults.metode).trim();
-                    const prokerId = it.proker_id || defaults.proker_id || 'NULL';
-                    const member = resolveMemberFromSearch(it.pj_search || defaults.pj_search);
-                    const userId = member ? member.id : '';
-                    const picName = (userId && typeof membersMap !== 'undefined') ? (membersMap[userId.toString()] || member.name || '') : '';
-                    const noteParts = [];
-                    if (toko) noteParts.push('Struk: ' + toko);
-                    if ((it.keterangan || '').trim()) noteParts.push(it.keterangan.trim());
-                    const finalNote = noteParts.join(' | ');
+                    const finalNote = (it.keterangan || '').trim();
 
                     await fetch(GOOGLE_SCRIPT_URL, {
                         method: 'POST',
@@ -4644,8 +4536,8 @@
                             jumlah: total,
                             nominal: total,
                             jenis: 'Keluar',
-                            metode: metode,
-                            kategori: kategori,
+                            metode: met,
+                            kategori: kat,
                             proker_id: prokerId,
                             user_id: userId,
                             nama_pic_pengeluar: picName,
