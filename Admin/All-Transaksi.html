@@ -3812,74 +3812,192 @@
             </div>
         </div>
     </div>
-    <!-- MODAL CEK STRUK (AI RECEIPT SCANNER) -->
-    <div id="receiptScanModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-neutral-950/85 backdrop-blur-md">
-        <div class="bg-neutral-900 border border-neutral-800 max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
-            <div class="flex items-center justify-between border-b border-neutral-800 px-4 py-3 bg-neutral-950/60">
-                <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-xs">
-                        <i class="fa-solid fa-receipt"></i>
-                    </span>
+    <!-- MODAL CEK STRUK (AI RECEIPT SCANNER - SPLITBILL STYLE MULTI-ITEM EDITOR) -->
+    <div id="receiptScanModal" style="z-index: 110;" class="fixed inset-0 hidden items-center justify-center p-2.5 sm:p-4 bg-neutral-950/90 backdrop-blur-md">
+        <div class="bg-neutral-900 border border-neutral-800 max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[94vh]">
+            <!-- Header Modal -->
+            <div class="flex items-center justify-between border-b border-neutral-800 px-4 py-3 bg-neutral-950/80">
+                <div class="flex items-center gap-2.5">
+                    <button type="button" onclick="closeScanReceiptModal()" class="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:text-white flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
                     <div>
-                        <h3 class="text-xs sm:text-sm font-bold text-neutral-100 leading-tight">Cek Struk Hasil Scan</h3>
-                        <span class="text-[10px] text-neutral-400">Bandingkan dengan foto asli sebelum dimasukkan ke form.</span>
+                        <h3 class="text-xs sm:text-sm font-bold text-neutral-100 leading-tight">Cek Struk</h3>
+                        <span class="text-[10px] text-neutral-400">Edit masing-masing barang &amp; simpan banyak pengeluaran sekaligus</span>
                     </div>
                 </div>
                 <button type="button" onclick="closeScanReceiptModal()" class="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-400 hover:text-white cursor-pointer">✕</button>
             </div>
 
+            <!-- Scrollable Body -->
             <div class="p-3 sm:p-4 overflow-y-auto space-y-3.5 flex-1">
-                <!-- Preview Struk Asli -->
-                <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-2 flex flex-col items-center">
-                    <span class="text-[9px] font-mono uppercase tracking-wider text-neutral-500 mb-1.5">Foto Struk Asli (Scroll / Geser untuk Bandingkan)</span>
-                    <div class="w-full max-h-44 overflow-auto flex justify-center rounded-lg bg-black/40 p-1">
-                        <img id="scan_receipt_preview_img" src="" alt="Struk Asli" class="max-w-full object-contain rounded">
+                <!-- 1. Preview Struk Asli (SplitBill Top Card) -->
+                <div class="relative bg-neutral-950 border border-neutral-800 rounded-2xl p-2 flex flex-col items-center">
+                    <div class="w-full flex items-center justify-between px-1 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-900 border border-neutral-700 text-[10px] font-bold text-neutral-200">
+                            <i class="fa-solid fa-camera text-rose-400"></i>
+                            <span>Asli</span>
+                        </span>
+                        <span class="text-[9px] font-mono uppercase tracking-widest text-neutral-400">GESER BUAT BANDINGIN</span>
+                    </div>
+                    <div class="w-full max-h-44 overflow-auto flex justify-center rounded-xl bg-black/50 p-1.5 border border-neutral-900">
+                        <img id="scan_receipt_preview_img" src="" alt="Struk Asli" class="max-w-full object-contain rounded-lg">
                     </div>
                 </div>
 
-                <!-- Toko & Tanggal -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold">Nama Toko / Merchant</label>
-                        <input type="text" id="scan_toko_input" placeholder="Nama toko..." class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-rose-500">
+                <!-- 2. Info Struk & Pengaturan Standar Pengeluaran (Berlaku ke Semua Item, Bisa Di-custom per Item) -->
+                <div class="bg-neutral-950/90 border border-neutral-800/90 rounded-2xl p-3 sm:p-3.5 space-y-3">
+                    <div class="flex items-center justify-between border-b border-neutral-800/80 pb-2">
+                        <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-rose-400">Standar Pengeluaran Struk Ini</span>
+                        <span class="text-[9.5px] text-neutral-400">Otomatis diterapkan ke semua item (bisa diubah per item)</span>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold">Tanggal Struk</label>
-                        <input type="date" id="scan_tanggal_input" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-rose-500 font-mono">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Nama Toko / Merchant</label>
+                            <input type="text" id="scan_toko_input" oninput="currentScannedData.toko = this.value" placeholder="Contoh: O! Save, Indomaret..." class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Tanggal Pengeluaran *</label>
+                            <input type="date" id="scan_tanggal_input" onchange="applyDefaultToAllScanItems('tanggal', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500 font-mono">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Divisi Default *</label>
+                            <select id="scan_default_divisi" onchange="handleScanDefaultSelectChange('divisi')" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
+                                <option value="NULL">- Tanpa Divisi (Umum) -</option>
+                                <option value="Acara">Acara</option>
+                                <option value="Sekretaris">Sekretaris</option>
+                                <option value="Bendahara">Bendahara</option>
+                                <option value="Konsumsi">Konsumsi</option>
+                                <option value="Logistik">Logistik</option>
+                                <option value="Artistik">Artistik</option>
+                                <option value="Korlap">Korlap</option>
+                                <option value="Sponsor">Sponsor</option>
+                                <option value="HPD">HPD</option>
+                                <option value="custom">+ Tulis Sendiri...</option>
+                            </select>
+                            <input type="text" id="scan_default_divisi_custom" oninput="applyDefaultToAllScanItems('divisi', this.value)" placeholder="Ketik Divisi..." class="hidden mt-1.5 w-full bg-neutral-900 border border-neutral-800 rounded-xl px-2.5 py-1.5 text-xs text-neutral-100">
+                        </div>
+
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Kategori Default *</label>
+                            <select id="scan_default_kategori" onchange="handleScanDefaultSelectChange('kategori')" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
+                                <option value="">Pilih Kategori...</option>
+                                <option value="Dana Operasional 2026">Dana Operasional 2026</option>
+                                <option value="Dana Operasional">Dana Operasional</option>
+                                <option value="Donasi">Donasi</option>
+                                <option value="Kas">Kas</option>
+                                <option value="Danusan">Danusan</option>
+                                <option value="custom">+ Tulis Sendiri...</option>
+                            </select>
+                            <input type="text" id="scan_default_kategori_custom" oninput="applyDefaultToAllScanItems('kategori', this.value)" placeholder="Ketik Kategori..." class="hidden mt-1.5 w-full bg-neutral-900 border border-neutral-800 rounded-xl px-2.5 py-1.5 text-xs text-neutral-100">
+                        </div>
+
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Metode Pembayaran *</label>
+                            <select id="scan_default_metode" onchange="applyDefaultToAllScanItems('metode', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
+                                <option value="">-- Pilih Metode --</option>
+                                <option value="Tunai">Uang Tunai (Cash)</option>
+                                <option value="GoPay">E-Wallet GoPay</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Penanggung Jawab (PJ) *</label>
+                            <input type="text" id="scan_default_pj" list="out_members_list" oninput="applyDefaultToAllScanItems('pj_search', this.value)" placeholder="Cari &amp; pilih nama anggota PJ..." class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-mono text-neutral-400 uppercase font-bold block mb-1">Hubungkan Ke Proker</label>
+                            <select id="scan_default_proker" onchange="applyDefaultToAllScanItems('proker_id', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
+                                <option value="NULL">- Tanpa Proker (Umum) -</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Daftar Item Terdeteksi -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-mono uppercase font-bold text-neutral-300">Item Terdeteksi</span>
-                        <button type="button" onclick="addScanItemRow()" class="text-[10px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/50 border border-rose-800/40 px-2.5 py-1 rounded-lg cursor-pointer">
-                            + Tambah Item
-                        </button>
+                <!-- 3. Daftar Item Hasil Scan (SplitBill Style List + Expandable Edit Box) -->
+                <div class="bg-neutral-950/80 border border-neutral-800/90 rounded-2xl p-3 sm:p-4 space-y-3">
+                    <div class="flex items-center justify-between border-b border-dashed border-neutral-800 pb-2">
+                        <span class="text-[10px] font-mono uppercase font-bold text-neutral-300">Daftar Barang di Struk (Klik ✏️ untuk Custom Detail)</span>
+                        <span id="scan_items_count_badge" class="text-[10px] font-mono text-rose-400 font-bold">0 item</span>
                     </div>
-                    <div id="scan_items_container" class="space-y-2"></div>
-                </div>
 
-                <!-- Total -->
-                <div class="bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 flex items-center justify-between">
-                    <span class="text-[10px] font-mono uppercase font-bold text-neutral-400">Total Terhitung</span>
-                    <span id="scan_grand_total" class="text-sm sm:text-base font-black text-rose-300 font-mono">Rp0</span>
+                    <div id="scan_items_container" class="divide-y divide-dashed divide-neutral-800/80"></div>
+
+                    <!-- Tombol + Tambah Item (Dashed Border seperti SplitBill) -->
+                    <button type="button" onclick="addScanItemRow()" class="w-full py-2.5 rounded-xl border border-dashed border-rose-500/40 hover:border-rose-400 bg-rose-950/15 hover:bg-rose-950/30 text-rose-300 text-xs font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                        <span>Tambah Item</span>
+                    </button>
+
+                    <!-- Subtotal & Total -->
+                    <div class="pt-2 border-t border-dashed border-neutral-800 flex items-center justify-between">
+                        <span id="scan_subtotal_label" class="text-xs text-neutral-400 font-medium">Subtotal • 0 item</span>
+                        <span id="scan_grand_total" class="text-base sm:text-lg font-black text-neutral-100 font-mono">Rp0</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="border-t border-neutral-800 p-3 sm:p-4 bg-neutral-950/70 flex flex-col sm:flex-row gap-2">
-                <button type="button" onclick="applyScanToForm()" class="flex-1 py-2.5 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-xs font-bold cursor-pointer transition-all">
-                    Isi ke Form (1 Item)
+            <!-- Footer Actions -->
+            <div class="border-t border-neutral-800 p-3 sm:p-4 bg-neutral-950/90 flex flex-col sm:flex-row gap-2">
+                <button type="button" onclick="applyScanToForm()" class="sm:w-44 py-2.5 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold cursor-pointer transition-all">
+                    Isi ke Form (1 Baris)
                 </button>
-                <button type="button" onclick="saveAllScannedItems()" class="flex-1 py-2.5 px-3 rounded-xl bg-rose-500 hover:bg-rose-400 text-neutral-950 text-xs font-bold cursor-pointer transition-all">
-                    Simpan Semua Item Sekaligus
+                <button type="button" id="btn_save_all_scanned" onclick="saveAllScannedItems()" class="flex-1 py-3 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-neutral-950 text-xs sm:text-sm font-black cursor-pointer transition-all shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Konfirmasi &amp; Simpan Semua Item</span>
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentScannedData = { toko: '', tanggal: '', metode: '', items: [], imageBase64: '' };
+        let currentScannedData = {
+            toko: '',
+            tanggal: '',
+            metode: '',
+            items: [],
+            imageBase64: '',
+            editingIndex: -1
+        };
+
+        const SATUAN_OPTIONS_LIST = [
+            { value: 'NULL', label: '- Tanpa Satuan -' },
+            { value: 'Pcs', label: 'Pcs' },
+            { value: 'Set', label: 'Set' },
+            { value: 'Pack', label: 'Pack' },
+            { value: 'Box', label: 'Box' },
+            { value: 'Porsi', label: 'Porsi' },
+            { value: 'Kegiatan', label: 'Kegiatan' },
+            { value: 'Day', label: 'Day' }
+        ];
+
+        const DIVISI_OPTIONS_LIST = [
+            { value: 'NULL', label: '- Tanpa Divisi (Umum) -' },
+            { value: 'Acara', label: 'Acara' },
+            { value: 'Sekretaris', label: 'Sekretaris' },
+            { value: 'Bendahara', label: 'Bendahara' },
+            { value: 'Konsumsi', label: 'Konsumsi' },
+            { value: 'Logistik', label: 'Logistik' },
+            { value: 'Artistik', label: 'Artistik' },
+            { value: 'Korlap', label: 'Korlap' },
+            { value: 'Sponsor', label: 'Sponsor' },
+            { value: 'HPD', label: 'HPD' }
+        ];
+
+        const KATEGORI_OPTIONS_LIST = [
+            { value: '', label: 'Pilih Kategori...' },
+            { value: 'Dana Operasional 2026', label: 'Dana Operasional 2026' },
+            { value: 'Dana Operasional', label: 'Dana Operasional' },
+            { value: 'Donasi', label: 'Donasi' },
+            { value: 'Kas', label: 'Kas' },
+            { value: 'Danusan', label: 'Danusan' }
+        ];
 
         function closeScanReceiptModal() {
             const modal = document.getElementById('receiptScanModal');
@@ -3889,7 +4007,101 @@
             }
         }
 
+        function syncScanModalDefaultsFromForm() {
+            // Sinkronkan opsi proker dari #out_proker_id
+            const outProker = document.getElementById('out_proker_id');
+            const scanProker = document.getElementById('scan_default_proker');
+            if (outProker && scanProker) {
+                scanProker.innerHTML = outProker.innerHTML;
+                scanProker.value = outProker.value || 'NULL';
+            }
+
+            // Sinkronkan nilai yang sudah sempat dipilih user di form utama (jika ada)
+            const formDiv = typeof getDivisiValue === 'function' ? getDivisiValue('out') : 'NULL';
+            const formKat = typeof getKategoriValue === 'function' ? getKategoriValue('out') : '';
+            const formMet = (document.getElementById('out_metode') ? document.getElementById('out_metode').value : '') || currentScannedData.metode || '';
+            const formPj = document.getElementById('out_user_search') ? document.getElementById('out_user_search').value : '';
+
+            const divSel = document.getElementById('scan_default_divisi');
+            if (divSel && formDiv) {
+                const hasOpt = Array.from(divSel.options).some(o => o.value === formDiv);
+                divSel.value = hasOpt ? formDiv : 'custom';
+                const divCust = document.getElementById('scan_default_divisi_custom');
+                if (divCust) {
+                    divCust.classList.toggle('hidden', hasOpt);
+                    if (!hasOpt) divCust.value = formDiv;
+                }
+            }
+
+            const katSel = document.getElementById('scan_default_kategori');
+            if (katSel && formKat) {
+                const hasOpt = Array.from(katSel.options).some(o => o.value === formKat);
+                katSel.value = hasOpt ? formKat : 'custom';
+                const katCust = document.getElementById('scan_default_kategori_custom');
+                if (katCust) {
+                    katCust.classList.toggle('hidden', hasOpt);
+                    if (!hasOpt) katCust.value = formKat;
+                }
+            }
+
+            const metSel = document.getElementById('scan_default_metode');
+            if (metSel && formMet) metSel.value = formMet;
+
+            const pjInput = document.getElementById('scan_default_pj');
+            if (pjInput && formPj && !pjInput.value) pjInput.value = formPj;
+        }
+
+        function getScanDefaultValues() {
+            const divSel = document.getElementById('scan_default_divisi');
+            const divCust = document.getElementById('scan_default_divisi_custom');
+            const divisi = (divSel && divSel.value === 'custom') ? (divCust ? divCust.value.trim() : '') : (divSel ? divSel.value : 'NULL');
+
+            const katSel = document.getElementById('scan_default_kategori');
+            const katCust = document.getElementById('scan_default_kategori_custom');
+            const kategori = (katSel && katSel.value === 'custom') ? (katCust ? katCust.value.trim() : '') : (katSel ? katSel.value : '');
+
+            const metode = document.getElementById('scan_default_metode') ? document.getElementById('scan_default_metode').value : '';
+            const pj_search = document.getElementById('scan_default_pj') ? document.getElementById('scan_default_pj').value.trim() : '';
+            const proker_id = document.getElementById('scan_default_proker') ? document.getElementById('scan_default_proker').value : 'NULL';
+            const tanggal = document.getElementById('scan_tanggal_input') ? document.getElementById('scan_tanggal_input').value : '';
+
+            return { divisi: divisi || 'NULL', kategori, metode, pj_search, proker_id: proker_id || 'NULL', tanggal };
+        }
+
+        function handleScanDefaultSelectChange(type) {
+            const sel = document.getElementById('scan_default_' + type);
+            const cust = document.getElementById('scan_default_' + type + '_custom');
+            if (!sel) return;
+            if (sel.value === 'custom') {
+                if (cust) cust.classList.remove('hidden');
+            } else {
+                if (cust) cust.classList.add('hidden');
+                applyDefaultToAllScanItems(type, sel.value);
+            }
+        }
+
+        function applyDefaultToAllScanItems(field, value) {
+            currentScannedData.items.forEach(it => {
+                if (!it._customFields || !it._customFields[field]) {
+                    it[field] = value;
+                }
+            });
+            renderScanItems();
+        }
+
         function openScanReceiptModal() {
+            syncScanModalDefaultsFromForm();
+            const defaults = getScanDefaultValues();
+            currentScannedData.items.forEach(it => {
+                if (!it._customFields) it._customFields = {};
+                if (!it.divisi) it.divisi = defaults.divisi;
+                if (!it.kategori) it.kategori = defaults.kategori;
+                if (!it.metode) it.metode = defaults.metode;
+                if (!it.pj_search) it.pj_search = defaults.pj_search;
+                if (!it.proker_id) it.proker_id = defaults.proker_id;
+                if (!it.tanggal) it.tanggal = defaults.tanggal;
+            });
+            renderScanItems();
             const modal = document.getElementById('receiptScanModal');
             if (modal) {
                 modal.classList.remove('hidden');
@@ -3922,7 +4134,7 @@
 
             Swal.fire({
                 title: 'Memindai Struk...',
-                text: 'AI sedang membaca nama barang, jumlah & harga.',
+                text: 'AI sedang mendeteksi daftar barang, jumlah & harga.',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -3955,19 +4167,51 @@
                 }
 
                 const d = json.data;
+                const defaultTgl = d.tanggal || document.getElementById('out_tanggal').value || new Date().toISOString().substring(0, 10);
+                document.getElementById('scan_receipt_preview_img').src = compressedBase64;
+                document.getElementById('scan_toko_input').value = d.toko || '';
+                document.getElementById('scan_tanggal_input').value = defaultTgl;
+
+                syncScanModalDefaultsFromForm();
+                if (d.metode) {
+                    const metSel = document.getElementById('scan_default_metode');
+                    if (metSel && Array.from(metSel.options).some(o => o.value === d.metode)) {
+                        metSel.value = d.metode;
+                    }
+                }
+                const defaults = getScanDefaultValues();
+
+                const rawItems = Array.isArray(d.items) && d.items.length > 0
+                    ? d.items
+                    : [{ nama: '', qty: 1, satuan: 'Pcs', harga_satuan: 0, total: 0 }];
+
                 currentScannedData = {
                     toko: d.toko || '',
-                    tanggal: d.tanggal || '',
-                    metode: d.metode || '',
-                    items: Array.isArray(d.items) && d.items.length > 0 ? d.items : [{ nama: '', qty: 1, satuan: '', harga_satuan: 0, total: 0 }],
-                    imageBase64: compressedBase64
+                    tanggal: defaultTgl,
+                    metode: d.metode || defaults.metode || '',
+                    imageBase64: compressedBase64,
+                    editingIndex: rawItems.length === 1 ? 0 : -1,
+                    items: rawItems.map(it => {
+                        const qty = Number(it.qty) || 1;
+                        const harga = Math.round(Number(it.harga_satuan) || 0);
+                        return {
+                            nama: it.nama || '',
+                            qty: qty,
+                            satuan: it.satuan || 'Pcs',
+                            harga_satuan: harga,
+                            total: qty * harga,
+                            tanggal: defaultTgl,
+                            divisi: defaults.divisi,
+                            kategori: defaults.kategori,
+                            metode: defaults.metode,
+                            pj_search: defaults.pj_search,
+                            proker_id: defaults.proker_id,
+                            keterangan: '',
+                            _customFields: {}
+                        };
+                    })
                 };
 
-                // Jika hanya 1 item & user ingin cepat, tetap buka modal Cek Struk agar bisa diverifikasi
-                document.getElementById('scan_receipt_preview_img').src = compressedBase64;
-                document.getElementById('scan_toko_input').value = currentScannedData.toko;
-                document.getElementById('scan_tanggal_input').value = currentScannedData.tanggal || document.getElementById('out_tanggal').value;
-                renderScanItems();
                 const reopenBtn = document.getElementById('btn_reopen_scan_modal');
                 if (reopenBtn) {
                     reopenBtn.classList.remove('hidden');
@@ -3980,11 +4224,16 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Scan Struk',
-                    text: err.message || err.toString()
+                    text: err.name === 'AbortError' ? 'Waktu scan habis (timeout 30 detik). Silakan coba lagi.' : (err.message || err.toString())
                 });
             } finally {
                 input.value = '';
             }
+        }
+
+        function toggleEditScanItem(idx) {
+            currentScannedData.editingIndex = (currentScannedData.editingIndex === idx) ? -1 : idx;
+            renderScanItems();
         }
 
         function renderScanItems() {
@@ -3992,73 +4241,251 @@
             if (!container) return;
             container.innerHTML = '';
 
+            const prokerSelect = document.getElementById('scan_default_proker');
+            const prokerOptionsHtml = prokerSelect ? prokerSelect.innerHTML : '<option value="NULL">- Tanpa Proker (Umum) -</option>';
+
             currentScannedData.items.forEach((item, idx) => {
                 const qty = Number(item.qty) || 1;
-                const harga = Number(item.harga_satuan) || 0;
+                const harga = Math.round(Number(item.harga_satuan) || 0);
                 const total = qty * harga;
                 item.total = total;
+                const satuanLabel = (item.satuan && item.satuan !== 'NULL') ? item.satuan : '';
+                const isEditing = currentScannedData.editingIndex === idx;
 
-                const row = document.createElement('div');
-                row.className = 'bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 space-y-2';
-                row.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <input type="text" value="${(item.nama || '').replace(/"/g, '&quot;')}" onchange="updateScanItem(${idx}, 'nama', this.value)" placeholder="Nama item..." class="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-neutral-100 focus:outline-none focus:border-rose-500">
-                        <button type="button" onclick="removeScanItemRow(${idx})" class="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-rose-400 hover:bg-rose-950/60 text-xs cursor-pointer" title="Hapus item">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div>
-                            <label class="text-[9px] font-mono text-neutral-500 block">Jml</label>
-                            <input type="number" min="1" value="${qty}" oninput="updateScanItem(${idx}, 'qty', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-neutral-200 font-mono">
+                const wrapper = document.createElement('div');
+                wrapper.className = 'py-2.5 first:pt-1 last:pb-1';
+
+                if (!isEditing) {
+                    // TAMPILAN RINGKAS (PERSIS GAMBAR SPLITBILL 11.42.55 AM (1))
+                    const divBadge = (item.divisi && item.divisi !== 'NULL') ? item.divisi : 'Umum';
+                    const katBadge = item.kategori || 'Belum pilih kategori';
+                    wrapper.innerHTML = `
+                        <div class="flex items-center justify-between gap-3 group cursor-pointer" onclick="toggleEditScanItem(${idx})">
+                            <div class="min-w-0 flex-1">
+                                <div class="text-xs sm:text-sm font-bold text-neutral-100 truncate">${escapeHtmlAttr(item.nama || '(Tanpa Nama Barang)')}</div>
+                                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                    <span class="text-[11px] font-mono text-neutral-400">${qty}${satuanLabel ? ' ' + escapeHtmlAttr(satuanLabel) : ''} × Rp${harga.toLocaleString('id-ID')}</span>
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 font-mono">${escapeHtmlAttr(divBadge)}</span>
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-800/40 text-rose-300 font-mono">${escapeHtmlAttr(katBadge)}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5 shrink-0">
+                                <span class="text-xs sm:text-sm font-bold text-neutral-100 font-mono">Rp${total.toLocaleString('id-ID')}</span>
+                                <button type="button" onclick="event.stopPropagation(); toggleEditScanItem(${idx})" class="w-7 h-7 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-400 hover:text-rose-400 flex items-center justify-center text-xs cursor-pointer transition-colors" title="Edit Detail Item">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <label class="text-[9px] font-mono text-neutral-500 block">Satuan</label>
-                            <input type="text" value="${(item.satuan || '').replace(/"/g, '&quot;')}" onchange="updateScanItem(${idx}, 'satuan', this.value)" placeholder="Pcs" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-neutral-200">
+                    `;
+                } else {
+                    // TAMPILAN EDIT LENGKAP (PERSIS GAMBAR SPLITBILL 11.42.54 AM (1) + STANDAR PENGELUARAN KITA)
+                    const isCustomSat = item.satuan && item.satuan !== 'NULL' && !SATUAN_OPTIONS_LIST.some(o => o.value.toLowerCase() === item.satuan.toLowerCase());
+                    const selectedSat = isCustomSat ? 'custom' : (SATUAN_OPTIONS_LIST.find(o => o.value.toLowerCase() === (item.satuan || 'NULL').toLowerCase())?.value || 'NULL');
+
+                    const isCustomDiv = item.divisi && item.divisi !== 'NULL' && !DIVISI_OPTIONS_LIST.some(o => o.value === item.divisi);
+                    const selectedDiv = isCustomDiv ? 'custom' : (item.divisi || 'NULL');
+
+                    const isCustomKat = item.kategori && !KATEGORI_OPTIONS_LIST.some(o => o.value === item.kategori);
+                    const selectedKat = isCustomKat ? 'custom' : (item.kategori || '');
+
+                    wrapper.innerHTML = `
+                        <div class="bg-rose-950/20 border border-rose-500/40 rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-lg">
+                            <!-- Nama Item -->
+                            <div>
+                                <label class="text-[9px] font-mono uppercase font-bold text-rose-300 block mb-1">Nama Barang / Uraian Pengeluaran *</label>
+                                <input type="text" value="${escapeHtmlAttr(item.nama || '')}" oninput="updateScanItemField(${idx}, 'nama', this.value, false)" placeholder="Nama barang..." class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-neutral-100 focus:outline-none focus:border-rose-400">
+                            </div>
+
+                            <!-- Jml, Satuan, Harga Satuan -->
+                            <div class="grid grid-cols-12 gap-2">
+                                <div class="col-span-3">
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Jml (Qty)</label>
+                                    <input type="number" min="1" value="${qty}" oninput="updateScanItemField(${idx}, 'qty', this.value, false)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-center text-neutral-100 focus:outline-none focus:border-rose-400">
+                                </div>
+                                <div class="col-span-4">
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Satuan</label>
+                                    <select onchange="handleScanItemSatuanChange(${idx}, this.value)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100 focus:outline-none focus:border-rose-400">
+                                        ${SATUAN_OPTIONS_LIST.map(o => `<option value="${o.value}" ${o.value === selectedSat ? 'selected' : ''}>${o.label}</option>`).join('')}
+                                        <option value="custom" ${selectedSat === 'custom' ? 'selected' : ''}>+ Tulis Sendiri...</option>
+                                    </select>
+                                    <input type="text" id="scan_item_satuan_custom_${idx}" value="${isCustomSat ? escapeHtmlAttr(item.satuan) : ''}" oninput="updateScanItemField(${idx}, 'satuan', this.value, false)" placeholder="Satuan..." class="${selectedSat === 'custom' ? '' : 'hidden'} mt-1.5 w-full bg-neutral-900 border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-neutral-100">
+                                </div>
+                                <div class="col-span-5">
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Harga Satuan (Rp)</label>
+                                    <input type="number" min="0" value="${harga}" oninput="updateScanItemField(${idx}, 'harga_satuan', this.value, false)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-neutral-100 focus:outline-none focus:border-rose-400">
+                                </div>
+                            </div>
+
+                            <!-- Total Otomatis -->
+                            <div>
+                                <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Total Harga Item</label>
+                                <div id="scan_item_total_box_${idx}" class="w-full bg-neutral-950/90 border border-neutral-800 rounded-xl px-3 py-2 text-xs sm:text-sm font-mono font-black text-rose-300">
+                                    Rp${total.toLocaleString('id-ID')}
+                                </div>
+                            </div>
+
+                            <!-- Standar Input Pengeluaran per Item (Divisi, Kategori, Metode, PJ, Proker, Catatan) -->
+                            <div class="pt-2 border-t border-neutral-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <div>
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Divisi Item Ini</label>
+                                    <select onchange="handleScanItemCustomSelect(${idx}, 'divisi', this.value)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
+                                        ${DIVISI_OPTIONS_LIST.map(o => `<option value="${o.value}" ${o.value === selectedDiv ? 'selected' : ''}>${o.label}</option>`).join('')}
+                                        <option value="custom" ${selectedDiv === 'custom' ? 'selected' : ''}>+ Tulis Sendiri...</option>
+                                    </select>
+                                    <input type="text" id="scan_item_divisi_custom_${idx}" value="${isCustomDiv ? escapeHtmlAttr(item.divisi) : ''}" oninput="updateScanItemField(${idx}, 'divisi', this.value, false, true)" placeholder="Ketik Divisi..." class="${selectedDiv === 'custom' ? '' : 'hidden'} mt-1.5 w-full bg-neutral-900 border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-neutral-100">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Kategori Item Ini</label>
+                                    <select onchange="handleScanItemCustomSelect(${idx}, 'kategori', this.value)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
+                                        ${KATEGORI_OPTIONS_LIST.map(o => `<option value="${o.value}" ${o.value === selectedKat ? 'selected' : ''}>${o.label}</option>`).join('')}
+                                        <option value="custom" ${selectedKat === 'custom' ? 'selected' : ''}>+ Tulis Sendiri...</option>
+                                    </select>
+                                    <input type="text" id="scan_item_kategori_custom_${idx}" value="${isCustomKat ? escapeHtmlAttr(item.kategori) : ''}" oninput="updateScanItemField(${idx}, 'kategori', this.value, false, true)" placeholder="Ketik Kategori..." class="${selectedKat === 'custom' ? '' : 'hidden'} mt-1.5 w-full bg-neutral-900 border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-neutral-100">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Metode Pembayaran</label>
+                                    <select onchange="updateScanItemField(${idx}, 'metode', this.value, false, true)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
+                                        <option value="" ${!item.metode ? 'selected' : ''}>-- Pilih Metode --</option>
+                                        <option value="Tunai" ${item.metode === 'Tunai' ? 'selected' : ''}>Uang Tunai (Cash)</option>
+                                        <option value="GoPay" ${item.metode === 'GoPay' ? 'selected' : ''}>E-Wallet GoPay</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Penanggung Jawab (PJ)</label>
+                                    <input type="text" list="out_members_list" value="${escapeHtmlAttr(item.pj_search || '')}" oninput="updateScanItemField(${idx}, 'pj_search', this.value, false, true)" placeholder="Cari anggota PJ..." class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Hubungkan Ke Proker</label>
+                                    <select id="scan_item_proker_${idx}" onchange="updateScanItemField(${idx}, 'proker_id', this.value, false, true)" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
+                                        ${prokerOptionsHtml}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-mono uppercase font-bold text-neutral-400 block mb-1">Catatan Tambahan (Opsional)</label>
+                                    <input type="text" value="${escapeHtmlAttr(item.keterangan || '')}" oninput="updateScanItemField(${idx}, 'keterangan', this.value, false, true)" placeholder="Keterangan tambahan item ini..." class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2 text-xs text-neutral-100">
+                                </div>
+                            </div>
+
+                            <!-- Tombol Hapus (Kiri) & Selesai (Kanan) seperti SplitBill 11.42.54 AM (1) -->
+                            <div class="flex items-center justify-between pt-2">
+                                <button type="button" onclick="removeScanItemRow(${idx})" class="w-8 h-8 rounded-xl bg-neutral-900 hover:bg-rose-950/70 border border-neutral-800 hover:border-rose-700 text-rose-400 flex items-center justify-center text-xs cursor-pointer transition-colors" title="Hapus Item">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                                <button type="button" onclick="toggleEditScanItem(-1)" class="px-4 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-neutral-950 text-xs font-bold cursor-pointer transition-colors">
+                                    Selesai
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <label class="text-[9px] font-mono text-neutral-500 block">Harga Satuan</label>
-                            <input type="number" min="0" value="${harga}" oninput="updateScanItem(${idx}, 'harga_satuan', this.value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-neutral-200 font-mono">
-                        </div>
-                    </div>
-                    <div class="flex justify-end text-[11px] font-mono text-rose-300 font-bold">
-                        Subtotal: Rp${total.toLocaleString('id-ID')}
-                    </div>
-                `;
-                container.appendChild(row);
+                    `;
+                }
+
+                container.appendChild(wrapper);
+
+                if (isEditing) {
+                    const prokerEl = document.getElementById(`scan_item_proker_${idx}`);
+                    if (prokerEl) prokerEl.value = item.proker_id || 'NULL';
+                }
             });
 
             updateScanGrandTotal();
         }
 
-        function updateScanItem(idx, field, value) {
-            if (!currentScannedData.items[idx]) return;
-            if (field === 'qty' || field === 'harga_satuan') {
-                currentScannedData.items[idx][field] = parseFloat(value) || 0;
+        function handleScanItemSatuanChange(idx, val) {
+            const cust = document.getElementById(`scan_item_satuan_custom_${idx}`);
+            if (val === 'custom') {
+                if (cust) {
+                    cust.classList.remove('hidden');
+                    cust.focus();
+                }
             } else {
-                currentScannedData.items[idx][field] = value;
+                if (cust) cust.classList.add('hidden');
+                updateScanItemField(idx, 'satuan', val, false);
             }
-            const qty = Number(currentScannedData.items[idx].qty) || 1;
-            const harga = Number(currentScannedData.items[idx].harga_satuan) || 0;
-            currentScannedData.items[idx].total = qty * harga;
-            renderScanItems();
+        }
+
+        function handleScanItemCustomSelect(idx, field, val) {
+            const cust = document.getElementById(`scan_item_${field}_custom_${idx}`);
+            if (val === 'custom') {
+                if (cust) {
+                    cust.classList.remove('hidden');
+                    cust.focus();
+                }
+            } else {
+                if (cust) cust.classList.add('hidden');
+                updateScanItemField(idx, field, val, false, true);
+            }
+        }
+
+        function updateScanItemField(idx, field, value, shouldReRender = false, markCustom = false) {
+            const it = currentScannedData.items[idx];
+            if (!it) return;
+            if (markCustom) {
+                if (!it._customFields) it._customFields = {};
+                it._customFields[field] = true;
+            }
+            if (field === 'qty' || field === 'harga_satuan') {
+                it[field] = parseFloat(value) || 0;
+                const qty = Number(it.qty) || 1;
+                const harga = Math.round(Number(it.harga_satuan) || 0);
+                it.total = qty * harga;
+                const totalBox = document.getElementById(`scan_item_total_box_${idx}`);
+                if (totalBox) totalBox.innerText = 'Rp' + it.total.toLocaleString('id-ID');
+                updateScanGrandTotal();
+            } else {
+                it[field] = value;
+            }
+            if (shouldReRender) renderScanItems();
         }
 
         function addScanItemRow() {
-            currentScannedData.items.push({ nama: '', qty: 1, satuan: 'Pcs', harga_satuan: 0, total: 0 });
+            const defaults = getScanDefaultValues();
+            currentScannedData.items.push({
+                nama: '',
+                qty: 1,
+                satuan: 'Pcs',
+                harga_satuan: 0,
+                total: 0,
+                tanggal: defaults.tanggal,
+                divisi: defaults.divisi,
+                kategori: defaults.kategori,
+                metode: defaults.metode,
+                pj_search: defaults.pj_search,
+                proker_id: defaults.proker_id,
+                keterangan: '',
+                _customFields: {}
+            });
+            currentScannedData.editingIndex = currentScannedData.items.length - 1;
             renderScanItems();
         }
 
         function removeScanItemRow(idx) {
-            if (currentScannedData.items.length <= 1) return;
+            if (currentScannedData.items.length <= 1) {
+                Swal.fire({ icon: 'warning', title: 'Minimal 1 Item', text: 'Daftar item struk minimal harus memiliki 1 barang.' });
+                return;
+            }
             currentScannedData.items.splice(idx, 1);
+            currentScannedData.editingIndex = -1;
             renderScanItems();
         }
 
         function updateScanGrandTotal() {
-            const sum = currentScannedData.items.reduce((acc, it) => acc + ((Number(it.qty) || 1) * (Number(it.harga_satuan) || 0)), 0);
-            const el = document.getElementById('scan_grand_total');
-            if (el) el.innerText = 'Rp' + sum.toLocaleString('id-ID');
+            const count = currentScannedData.items.length;
+            const totalQty = currentScannedData.items.reduce((acc, it) => acc + (Number(it.qty) || 1), 0);
+            const sum = currentScannedData.items.reduce((acc, it) => acc + ((Number(it.qty) || 1) * Math.round(Number(it.harga_satuan) || 0)), 0);
+
+            const elTotal = document.getElementById('scan_grand_total');
+            if (elTotal) elTotal.innerText = 'Rp' + sum.toLocaleString('id-ID');
+
+            const elSub = document.getElementById('scan_subtotal_label');
+            if (elSub) elSub.innerText = `Subtotal • ${count} macam (${totalQty} unit)`;
+
+            const elBadge = document.getElementById('scan_items_count_badge');
+            if (elBadge) elBadge.innerText = `${count} barang`;
+
+            const btnSave = document.getElementById('btn_save_all_scanned');
+            if (btnSave) {
+                btnSave.innerHTML = `<i class="fa-solid fa-check-double"></i><span>Simpan ${count} Pengeluaran Sekaligus</span>`;
+            }
         }
 
         function setSelectSatuanValue(satuanRaw) {
@@ -4066,7 +4493,7 @@
             const custom = document.getElementById('out_satuan_custom');
             if (!sel) return;
             const s = (satuanRaw || '').trim();
-            if (!s) {
+            if (!s || s === 'NULL') {
                 sel.value = 'NULL';
                 if (custom) custom.classList.add('hidden');
                 return;
@@ -4084,16 +4511,33 @@
             }
         }
 
-        function applyScanToForm() {
-            const tgl = document.getElementById('scan_tanggal_input').value;
-            const toko = document.getElementById('scan_toko_input').value.trim();
-            if (tgl) document.getElementById('out_tanggal').value = tgl;
+        function resolveMemberFromSearch(searchStr) {
+            const s = (searchStr || '').trim().toLowerCase();
+            if (!s || typeof localAnggota === 'undefined') return null;
+            return localAnggota.find(m =>
+                `${m.name} (${m.divisi})`.toLowerCase() === s ||
+                (m.name || '').toLowerCase() === s
+            ) || null;
+        }
 
-            if (currentScannedData.metode) {
+        function applyScanToForm() {
+            const defaults = getScanDefaultValues();
+            const toko = document.getElementById('scan_toko_input').value.trim();
+            if (defaults.tanggal) document.getElementById('out_tanggal').value = defaults.tanggal;
+
+            if (defaults.metode) {
                 const mSel = document.getElementById('out_metode');
-                if (mSel && Array.from(mSel.options).some(o => o.value === currentScannedData.metode)) {
-                    mSel.value = currentScannedData.metode;
-                }
+                if (mSel) mSel.value = defaults.metode;
+            }
+            if (defaults.pj_search) {
+                const pjEl = document.getElementById('out_user_search');
+                if (pjEl) pjEl.value = defaults.pj_search;
+                const matched = resolveMemberFromSearch(defaults.pj_search);
+                if (matched) document.getElementById('out_user_id').value = matched.id;
+            }
+            if (defaults.proker_id) {
+                const prEl = document.getElementById('out_proker_id');
+                if (prEl) prEl.value = defaults.proker_id;
             }
 
             const items = currentScannedData.items.filter(it => (it.nama || '').trim() || Number(it.harga_satuan) > 0);
@@ -4124,58 +4568,65 @@
         }
 
         async function saveAllScannedItems() {
-            const divisi = getDivisiValue('out');
-            const cat = getKategoriValue('out');
-            const method = document.getElementById('out_metode').value || currentScannedData.metode || '';
-            const prokerId = document.getElementById('out_proker_id').value || 'NULL';
+            const defaults = getScanDefaultValues();
+            const toko = document.getElementById('scan_toko_input').value.trim();
+            const validItems = currentScannedData.items.filter(it => (it.nama || '').trim() && Number(it.harga_satuan) > 0);
 
-            const rawUserId = document.getElementById('out_user_id').value;
-            const searchVal = (document.getElementById('out_user_search') ? document.getElementById('out_user_search').value.trim() : '');
-            let userId = rawUserId;
-            if (!userId && searchVal && typeof localAnggota !== 'undefined') {
-                const valLower = searchVal.toLowerCase();
-                const match = localAnggota.find(m => `${m.name} (${m.divisi})`.toLowerCase() === valLower || m.name.toLowerCase() === valLower);
-                if (match) {
-                    userId = match.id;
-                    document.getElementById('out_user_id').value = match.id;
+            if (validItems.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Barang Belum Lengkap', text: 'Pastikan minimal ada 1 barang dengan nama dan harga satuan lebih dari 0.' });
+                return;
+            }
+
+            // Validasi setiap item memiliki Kategori, Metode, dan Penanggung Jawab (baik dari default struk maupun custom per item)
+            for (let i = 0; i < validItems.length; i++) {
+                const it = validItems[i];
+                const kat = (it.kategori || defaults.kategori || '').trim();
+                const met = (it.metode || defaults.metode || '').trim();
+                const pjStr = (it.pj_search || defaults.pj_search || '').trim();
+                const member = resolveMemberFromSearch(pjStr);
+
+                if (!kat) {
+                    Swal.fire({ icon: 'warning', title: 'Kategori Wajib Diisi', text: `Pilih Kategori Default di atas (atau pada item "${it.nama}") terlebih dahulu.` });
+                    return;
+                }
+                if (!met) {
+                    Swal.fire({ icon: 'warning', title: 'Metode Pembayaran Wajib Diisi', text: `Pilih Metode Pembayaran (Tunai / GoPay) terlebih dahulu.` });
+                    return;
+                }
+                if (!member) {
+                    Swal.fire({ icon: 'warning', title: 'Penanggung Jawab (PJ) Wajib Valid', text: `Pilih nama anggota Penanggung Jawab dari daftar yang tersedia untuk item "${it.nama}".` });
+                    return;
                 }
             }
 
-            if (!cat || !method || !userId) {
-                closeScanReceiptModal();
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Lengkapi Data Form Dulu',
-                    text: 'Pilih Kategori, Metode Pembayaran, dan Penanggung Jawab (PJ) di form Pengeluaran terlebih dahulu, lalu klik Simpan Semua.'
-                });
-                return;
-            }
-
-            const tgl = document.getElementById('scan_tanggal_input').value || document.getElementById('out_tanggal').value;
-            const toko = document.getElementById('scan_toko_input').value.trim();
-            const picName = userId && typeof membersMap !== 'undefined' ? (membersMap[userId.toString()] || '') : '';
-            const items = currentScannedData.items.filter(it => (it.nama || '').trim() && Number(it.harga_satuan) > 0);
-
-            if (items.length === 0) {
-                Swal.fire({ icon: 'warning', title: 'Item Kosong', text: 'Minimal harus ada 1 item valid.' });
-                return;
-            }
-
             Swal.fire({
-                title: `Menyimpan ${items.length} Item...`,
-                text: 'Mohon tunggu sebentar.',
+                title: `Menyimpan ${validItems.length} Pengeluaran...`,
+                text: 'Sedang mencatat seluruh barang dari struk ke Google Sheets.',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
 
             try {
-                for (let i = 0; i < items.length; i++) {
-                    const it = items[i];
+                for (let i = 0; i < validItems.length; i++) {
+                    const it = validItems[i];
                     const qty = Number(it.qty) || 1;
                     const price = Math.round(Number(it.harga_satuan) || 0);
                     const total = qty * price;
-                    const sat = (it.satuan || '').trim();
+                    const sat = (it.satuan && it.satuan !== 'NULL') ? it.satuan.trim() : '';
                     const unitVal = sat ? `${qty} ${sat}` : (qty > 1 ? String(qty) : 'NULL');
+
+                    const tgl = it.tanggal || defaults.tanggal || new Date().toISOString().substring(0, 10);
+                    const divisi = it.divisi || defaults.divisi || 'NULL';
+                    const kategori = (it.kategori || defaults.kategori).trim();
+                    const metode = (it.metode || defaults.metode).trim();
+                    const prokerId = it.proker_id || defaults.proker_id || 'NULL';
+                    const member = resolveMemberFromSearch(it.pj_search || defaults.pj_search);
+                    const userId = member ? member.id : '';
+                    const picName = (userId && typeof membersMap !== 'undefined') ? (membersMap[userId.toString()] || member.name || '') : '';
+                    const noteParts = [];
+                    if (toko) noteParts.push('Struk: ' + toko);
+                    if ((it.keterangan || '').trim()) noteParts.push(it.keterangan.trim());
+                    const finalNote = noteParts.join(' | ');
 
                     await fetch(GOOGLE_SCRIPT_URL, {
                         method: 'POST',
@@ -4187,14 +4638,14 @@
                             tanggal: tgl,
                             divisi: divisi,
                             uraian: it.nama.trim(),
-                            keterangan: toko ? ('Struk: ' + toko) : '',
+                            keterangan: finalNote,
                             unit: unitVal,
                             harga_satuan: price,
                             jumlah: total,
                             nominal: total,
                             jenis: 'Keluar',
-                            metode: method,
-                            kategori: cat,
+                            metode: metode,
+                            kategori: kategori,
                             proker_id: prokerId,
                             user_id: userId,
                             nama_pic_pengeluar: picName,
@@ -4206,7 +4657,7 @@
 
                 Swal.close();
                 closeScanReceiptModal();
-                Swal.fire({ icon: 'success', title: `${items.length} Item Pengeluaran Disimpan!`, showConfirmButton: false, timer: 1400 });
+                Swal.fire({ icon: 'success', title: `${validItems.length} Pengeluaran Berhasil Disimpan!`, showConfirmButton: false, timer: 1500 });
                 document.getElementById('pengeluaranForm').reset();
                 resetPengeluaranImage();
                 expTotal.innerText = 'Rp0';
